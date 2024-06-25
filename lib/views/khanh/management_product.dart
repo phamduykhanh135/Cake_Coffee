@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cake_coffee/models/khanh/add_products.dart';
 import 'package:cake_coffee/models/khanh/category_product.dart';
 import 'package:cake_coffee/models/khanh/edit_products.dart';
 import 'package:cake_coffee/models/khanh/products.dart';
 import 'package:cake_coffee/presents/khanh/add_category_product.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Management_Product extends StatefulWidget {
   const Management_Product({super.key});
@@ -19,6 +18,9 @@ class Management_Product extends StatefulWidget {
 
 class _Management_ProductState extends State<Management_Product>
     with SingleTickerProviderStateMixin {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   late TabController _tabController;
 
   final _nameController = TextEditingController();
@@ -29,9 +31,54 @@ class _Management_ProductState extends State<Management_Product>
   List<Category> categories = [];
   List<Product> products = [];
 
+  void _onAddProduct(Product newProduct) {
+    setState(() {
+      products.add(newProduct);
+    });
+  }
+
+  void _deleteProductFromList(String productId) {
+    // Replace with your actual implementation to delete the product
+    // Update your UI after deletion
+    setState(() {
+      products.removeWhere((product) => product.id == productId);
+    });
+  }
+
+  void _updateProductInList(Product updatedProduct) {
+    setState(() {
+      // Find the index of the updated product in the list and replace it
+      int index =
+          products.indexWhere((product) => product.id == updatedProduct.id);
+      if (index != -1) {
+        products[index] = updatedProduct;
+      }
+    });
+  }
+
+  List<Product> _filteredProducts() {
+    // Kiểm tra nếu chuỗi tìm kiếm rỗng (người dùng chưa nhập gì vào trường tìm kiếm)
+    if (_searchQuery.isEmpty) {
+      // Nếu chuỗi tìm kiếm rỗng, trả về toàn bộ danh sách sản phẩm
+      return products;
+    } else {
+      // Nếu chuỗi tìm kiếm không rỗng, thực hiện lọc danh sách sản phẩm
+      return products.where((product) =>
+          // Chuyển tên sản phẩm và chuỗi tìm kiếm thành chữ thường để so sánh không phân biệt hoa thường
+          product.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    }
+  }
+
   @override
   void initState() {
+    //Cập nhật trạng thái của _searchQuery khi người dùng nhập liệu:
+
     super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
     _tabController = TabController(length: 2, vsync: this);
     loadCategories();
     loadProducts();
@@ -61,61 +108,6 @@ class _Management_ProductState extends State<Management_Product>
     });
   }
 
-  // Future<List<Category>> fetchCategoriesFromFirestore() async {
-  //   try {
-  //     QuerySnapshot querySnapshot =
-  //         await FirebaseFirestore.instance.collection('categories').get();
-  //     return querySnapshot.docs
-  //         .map((doc) => Category.fromFirestore(doc))
-  //         .toList();
-  //   } catch (e) {
-  //     print('Error fetching categories: $e');
-  //     return [];
-  //   }
-  // }
-  // Future<List<Product>> fetchProductsFromFirestore() async {
-  //   try {
-  //     QuerySnapshot querySnapshot =
-  //         await FirebaseFirestore.instance.collection('products').get();
-  //     return querySnapshot.docs.map((doc) {
-  //       return Product(
-  //         id: doc['id'],
-  //         idCategoryProducts: doc['idCategoryProducts'],
-  //         name: doc['name'],
-  //         price: doc['price'],
-  //         idUnitProducts: doc['idUnitProducts'] ??
-  //             '', // Ensure to handle null case if necessary
-  //         image: doc['image'],
-  //         createTime: doc['createTime'] != null
-  //             ? (doc['createTime'] as Timestamp).toDate()
-  //             : DateTime.now(),
-  //         updateTime: doc['updateTime'] != null
-  //             ? (doc['updateTime'] as Timestamp).toDate()
-  //             : DateTime.now(),
-  //         deleteTime: doc['deleteTime'] != null
-  //             ? (doc['deleteTime'] as Timestamp).toDate()
-  //             : DateTime.now(),
-  //       );
-  //     }).toList();
-  //   } catch (e) {
-  //     print('Error fetching products: $e');
-  //     return [];
-  //   }
-  // }
-
-  // Future<List<Product>> fetchProductsFromFirestore() async {
-  //   try {
-  //     QuerySnapshot querySnapshot =
-  //         await FirebaseFirestore.instance.collection('products').get();
-  //     return querySnapshot.docs
-  //         .map((doc) => Product.fromFirestore(doc))
-  //         .toList();
-  //   } catch (e) {
-  //     print('Error fetching products: $e');
-  //     return [];
-  //   }
-  // }
-
   String _getCategoryNameById(String categoryId) {
     final category = categories.firstWhere(
       (category) => category.id == categoryId,
@@ -128,109 +120,6 @@ class _Management_ProductState extends State<Management_Product>
       ),
     );
     return category.name;
-  }
-
-  // void _showOptionsDialog(Map<String, dynamic> data) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Tùy chọn'),
-  //         content: SingleChildScrollView(
-  //           child: Column(
-  //             crossAxisAlignment: CrossAxisAlignment.start,
-  //             children: <Widget>[
-  //               TextFormField(
-  //                 initialValue: data['id'].toString(),
-  //                 onChanged: (newValue) {
-  //                   setState(() {
-  //                     data['id'] = newValue;
-  //                   });
-  //                 },
-  //                 decoration: const InputDecoration(
-  //                   border: OutlineInputBorder(),
-  //                   labelText: 'ID',
-  //                   contentPadding:
-  //                       EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-  //                 ),
-  //               ),
-  //               const SizedBox(height: 10),
-  //               TextFormField(
-  //                 initialValue: data['name'].toString(),
-  //                 onChanged: (newValue) {
-  //                   setState(() {
-  //                     data['name'] = newValue;
-  //                   });
-  //                 },
-  //                 decoration: const InputDecoration(
-  //                   border: OutlineInputBorder(),
-  //                   labelText: 'Name',
-  //                   contentPadding:
-  //                       EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-  //                 ),
-  //               ),
-  //               const SizedBox(height: 10),
-  //               TextFormField(
-  //                 initialValue: data['description'].toString(),
-  //                 onChanged: (newValue) {
-  //                   setState(() {
-  //                     data['description'] = newValue;
-  //                   });
-  //                 },
-  //                 decoration: const InputDecoration(
-  //                   border: OutlineInputBorder(),
-  //                   labelText: 'Mô tả',
-  //                   contentPadding:
-  //                       EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-  //                 ),
-  //               ),
-  //               const SizedBox(height: 10),
-  //               if (data.containsKey('categoryId'))
-  //                 Text('Danh mục: ${_getCategoryNameById(data['categoryId'])}'),
-  //               const SizedBox(height: 10),
-  //               Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //                 children: [
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       Navigator.of(context).pop();
-  //                       _editItem(data);
-  //                     },
-  //                     child: const Text('Sửa'),
-  //                   ),
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       Navigator.of(context).pop();
-  //                       _deleteItem(data);
-  //                     },
-  //                     style:
-  //                         ElevatedButton.styleFrom(backgroundColor: Colors.red),
-  //                     child: const Text('Xóa'),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  void _deleteItem(Map<String, dynamic> data) {
-    // Handle delete action
-    print('Delete item: $data');
-  }
-
-  void _updateProductInList(Product updatedProduct) {
-    setState(() {
-      // Find the index of the updated product in the list and replace it
-      int index =
-          products.indexWhere((product) => product.id == updatedProduct.id);
-      if (index != -1) {
-        products[index] = updatedProduct;
-      }
-    });
   }
 
   @override
@@ -281,11 +170,43 @@ class _Management_ProductState extends State<Management_Product>
                 Container(
                   child: roundedElevatedButton(
                       onPressed: () {
-                        AddProductPage.openAddProductDialog(context);
+                        AddProductPage.openAddProductDialog(
+                            context, _onAddProduct);
                       },
                       text: "Thêm",
                       backgroundColor: Colors.green),
                 )
+              ],
+            ),
+          ),
+          Container(
+            child: Row(
+              children: [
+                Container(
+                  color: Colors.white,
+                  width: MediaQuery.of(context).size.width *
+                      0.2, // Đặt độ rộng của Container chứa TextFormField
+                  height: 30, // Đặt chiều cao của TextFormField
+                  child: TextFormField(
+                    controller: _searchController,
+                    style: const TextStyle(
+                        fontSize: 15), // Đặt kích thước chữ cho TextFormField
+                    decoration: const InputDecoration(
+                      labelText: 'Tìm kiếm sản phẩm',
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 5,
+                          horizontal:
+                              10), // Đặt padding cho phần nội dung bên trong TextFormField
+                      border:
+                          OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {},
+                ),
               ],
             ),
           ),
@@ -311,12 +232,14 @@ class _Management_ProductState extends State<Management_Product>
                   'Thông tin danh mục',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Add category logic
-                  },
-                  child: const Text('Thêm danh mục'),
-                ),
+                Container(
+                  child: roundedElevatedButton(
+                      onPressed: () {
+                        Add_Category_Product.openAddProductDialog(context);
+                      },
+                      text: "Thêm",
+                      backgroundColor: Colors.green),
+                )
               ],
             ),
           ),
@@ -345,16 +268,7 @@ class _Management_ProductState extends State<Management_Product>
             // DataCell(Text(category.description)), // Ensure Category class has description property
             const DataCell(
               Row(
-                children: [
-                  // IconButton(
-                  //   icon: const Icon(Icons.edit),
-                  //   onPressed: () => _showOptionsDialog(category.toMap()),
-                  // ),
-                  // IconButton(
-                  //   icon: const Icon(Icons.delete),
-                  //   onPressed: () => _deleteItem(category.toMap()),
-                  // ),
-                ],
+                children: [],
               ),
             ),
           ],
@@ -364,6 +278,7 @@ class _Management_ProductState extends State<Management_Product>
   }
 
   Widget _buildProductTable() {
+    List<Product> filteredProducts = _filteredProducts();
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       elevation: 3,
@@ -376,42 +291,48 @@ class _Management_ProductState extends State<Management_Product>
           DataColumn(label: Text('Hình ảnh')),
           DataColumn(label: Text('Thao tác')),
         ],
-        rows: products.map((product) {
+        rows: filteredProducts.map((product) {
           return DataRow(
             cells: [
               DataCell(Text(product.name)),
               DataCell(Text(_getCategoryNameById(product.id_category_product))),
               DataCell(Text(product.id_unit_product)),
-              // DataCell(Text(product
-              //     .id_unit_product)), // Ensure Product class has unit property
-              DataCell(Text(
-                  '${product.price}.000đ')), // Ensure Product class has price property
-              //  DataCell(Text(_getCategoryNameById(product.id_catehory_product))),
-              DataCell(builImageProduct(decodeBase64Image(product.image))),
-
-              // Ensure Product class has categoryId property
-              // DataCell(product.image != null
-              //     ? Image.memory(decodeBase64Image(product.image)!)
-              //     : Container()),
+              DataCell(Text('${product.price}.000đ')),
+              //DataCell(Image.network(product.image, width: 50, height: 50)),
               // DataCell(
-              //   Row(
-              //     children: [
-              //       IconButton(
-              //         icon: const Icon(Icons.edit),
-              //         onPressed: () {
-              //           showDialog(
-              //             context: context,
-              //             builder: (BuildContext context) {
-              //               return EditProductsPage(
-              //                   product:
-              //                       product); // Pass the product you want to edit
-              //             },
-              //           );
-              //         },
-              //       ),
-              //     ],
+              //   FadeInImage.assetNetwork(
+              //     placeholder:
+              //         'assets/abc.png', // Đường dẫn tới ảnh placeholder trong assets của bạn
+              //     image: product.image,
+              //     width: 50,
+              //     height: 50,
+              //     fit: BoxFit.cover,
+              //     imageErrorBuilder: (context, error, stackTrace) {
+              //       return const Icon(Icons.error);
+              //     },
               //   ),
               // ),
+              //  DataCell(builImageProduct(decodeBase64Image(product.image))),
+              //DataCell(Text(product.image)),
+              DataCell(
+                product.image.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: product.image,
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                        //product.image,
+                        // placeholder: (context, url) =>
+                        //     const CircularProgressIndicator(),
+                        // errorWidget: (context, url, error) =>
+                        //     const Icon(Icons.error),
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      )
+                    : const Icon(Icons.error),
+              ),
               DataCell(
                 IconButton(
                   icon: const Icon(Icons.edit),
@@ -420,22 +341,6 @@ class _Management_ProductState extends State<Management_Product>
                   },
                 ),
               )
-
-              // DataCell(
-              //   Row(
-              //     children: [
-              //       IconButton(
-              //           icon: const Icon(Icons.edit),
-              //           onPressed: () =>
-              //               EditProducts // _showOptionsDialog(product.toMap()),
-              //           ),
-              //       IconButton(
-              //         icon: const Icon(Icons.delete),
-              //         onPressed: () => _deleteItem(product.toMap()),
-              //       ),
-              //     ],
-              //   ),
-              // ),
             ],
           );
         }).toList(),
@@ -449,7 +354,8 @@ class _Management_ProductState extends State<Management_Product>
       builder: (BuildContext context) {
         return EditProductsPage(
           product: product,
-          onUpdateProduct: _updateProductInList, // Pass the callback
+          onUpdateProduct: _updateProductInList,
+          onDeleteProduct: _deleteProductFromList, // Pass the callback
         );
       },
     );

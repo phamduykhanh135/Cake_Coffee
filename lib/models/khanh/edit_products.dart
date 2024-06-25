@@ -383,28 +383,40 @@
 //     }
 //   }
 // }
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:cake_coffee/models/khanh/category_product.dart';
 import 'package:cake_coffee/models/khanh/products.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProductsPage extends StatefulWidget {
   final Product product;
   final Function(Product)
       onUpdateProduct; // Callback để cập nhật bảng DataTable
+  final Function(String) onDeleteProduct;
 
-  const EditProductsPage(
-      {super.key, required this.product, required this.onUpdateProduct});
+  const EditProductsPage({
+    super.key,
+    required this.product,
+    required this.onUpdateProduct,
+    required this.onDeleteProduct,
+  });
 
-  static Future<void> openEditProductDialog(BuildContext context,
-      Product product, Function(Product) onUpdateProduct) async {
+  static Future<void> openEditProductDialog(
+      BuildContext context,
+      Product product,
+      Function(Product) onUpdateProduct,
+      Function(String) onDeleteProduct) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return EditProductsPage(
-          product: product,
-          onUpdateProduct: onUpdateProduct,
-        );
+            product: product,
+            onUpdateProduct: onUpdateProduct,
+            onDeleteProduct: onDeleteProduct);
       },
     );
   }
@@ -416,9 +428,12 @@ class EditProductsPage extends StatefulWidget {
 class _EditProductsPageState extends State<EditProductsPage> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
+  // Uint8List? _imageBytes;
+  // Uint8List? _currentImageBytes;
   String _selectedCategoryId = '';
   String _selectedUnit = '';
   List<Category> categories = [];
+  List<Product> products = [];
   final List<String> _unitProduct = [
     'Ly',
     'Cái',
@@ -432,6 +447,9 @@ class _EditProductsPageState extends State<EditProductsPage> {
         TextEditingController(text: widget.product.price.toString());
     _selectedCategoryId = widget.product.id_category_product ?? '';
     _selectedUnit = widget.product.id_unit_product ?? '';
+    // if (widget.product.image.isNotEmpty) {
+    //   _currentImageBytes = base64Decode(widget.product.image);
+    // }
     loadCategories();
   }
 
@@ -461,6 +479,17 @@ class _EditProductsPageState extends State<EditProductsPage> {
         querySnapshot.docs.map((doc) => Category.fromFirestore(doc)).toList();
     return categories;
   }
+
+  // Future<void> _pickImage() async {
+  //   final pickedFile =
+  //       await ImagePicker().pickImage(source: ImageSource.gallery);
+  //   if (pickedFile != null) {
+  //     List<int> imageBytes = await pickedFile.readAsBytes();
+  //     setState(() {
+  //       _imageBytes = Uint8List.fromList(imageBytes);
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -525,6 +554,69 @@ class _EditProductsPageState extends State<EditProductsPage> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16.0),
+            //       _currentImageBytes == null && _imageBytes == null
+            //           ? ElevatedButton(
+            //               onPressed: _pickImage,
+            //               child: const Text('Chọn ảnh'),
+            //             )
+            //           : Column(
+            //               children: [
+            //                 if (_currentImageBytes != null)
+            //                   Image.memory(
+            //                     _currentImageBytes!,
+            //                     height: 150,
+            //                     fit: BoxFit.cover,
+            //                   ),
+            //                 if (_imageBytes != null)
+            //                   Image.memory(
+            //                     _imageBytes!,
+            //                     height: 150,
+            //                     fit: BoxFit.cover,
+            //                   ),
+            //                 ElevatedButton(
+            //                   onPressed: _pickImage,
+            //                   child: const Text('Chọn ảnh mới'),
+            //                 ),
+            //               ],
+            //             ),
+            //     ],
+            //   ),
+            // ),
+            //     if (_imageBytes == null)
+            //       if (_currentImageBytes == null)
+            //         ElevatedButton(
+            //           onPressed: _pickImage,
+            //           child: const Text('Chọn ảnh'),
+            //         )
+            //       else
+            //         Column(
+            //           children: [
+            //             Image.memory(
+            //               _currentImageBytes!,
+            //               height: 150,
+            //               fit: BoxFit.cover,
+            //             ),
+            //             ElevatedButton(
+            //               onPressed: _pickImage,
+            //               child: const Text('Chọn ảnh mới'),
+            //             ),
+            //           ],
+            //         )
+            //     else
+            //       Column(
+            //         children: [
+            //           Image.memory(
+            //             _imageBytes!,
+            //             height: 150,
+            //             fit: BoxFit.cover,
+            //           ),
+            //           ElevatedButton(
+            //             onPressed: _pickImage,
+            //             child: const Text('Chọn ảnh mới'),
+            //           ),
+            //         ],
+            //       ),
           ],
         ),
       ),
@@ -541,6 +633,15 @@ class _EditProductsPageState extends State<EditProductsPage> {
           },
           child: const Text('Save'),
         ),
+        ElevatedButton(
+          onPressed: () {
+            _deleteProduct(widget.product.id);
+          },
+          style: ElevatedButton.styleFrom(
+            iconColor: Colors.red,
+          ),
+          child: const Text('Xóa'),
+        ),
       ],
     );
   }
@@ -550,15 +651,29 @@ class _EditProductsPageState extends State<EditProductsPage> {
     double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('products')
-          .doc(productId)
-          .update({
+      Map<String, dynamic> updatedData = {
         'name': name,
         'price': price,
         'idCategoryProduct': _selectedCategoryId,
         'idUnitProduct': _selectedUnit,
-      });
+      };
+
+      // if (_imageBytes != null) {
+      //   updatedData['image'] = base64Encode(_imageBytes!);
+      // }
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .update(updatedData);
+      // await FirebaseFirestore.instance
+      //     .collection('products')
+      //     .doc(productId)
+      //     .update({
+      //   'name': name,
+      //   'price': price,
+      //   'idCategoryProduct': _selectedCategoryId,
+      //   'idUnitProduct': _selectedUnit,
+      // });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -571,6 +686,10 @@ class _EditProductsPageState extends State<EditProductsPage> {
         widget.product.price = price;
         widget.product.id_category_product = _selectedCategoryId;
         widget.product.id_unit_product = _selectedUnit;
+        // if (_imageBytes != null) {
+        //   widget.product.image = base64Encode(_imageBytes!);
+        //   _currentImageBytes = _imageBytes;
+        // }
       });
 
       // Gọi callback để cập nhật bảng DataTable trên OtherPage
@@ -585,4 +704,55 @@ class _EditProductsPageState extends State<EditProductsPage> {
       );
     }
   }
+
+  void _deleteProduct(String productId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .delete();
+
+      setState(() {
+        products.removeWhere((product) => product.id == productId);
+      });
+      widget.onUpdateProduct(widget.product);
+      widget.onDeleteProduct(productId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Product deleted successfully!'),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete product: $error'),
+        ),
+      );
+    }
+  }
+
+  // void _deleteProduct(String productId) async {
+  //   try {
+  //     await FirebaseFirestore.instance
+  //         .collection('products')
+  //         .doc(productId)
+  //         .delete();
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Product deleted successfully!'),
+  //       ),
+  //     );
+
+  //     // Notify the parent widget to update the product list
+  //     widget.onUpdateProduct(widget.product);
+  //     Navigator.of(context).pop(); // Close dialog after successful deletion
+  //   } catch (error) {
+  //     print('Failed to delete product: $error');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Failed to delete product: $error'),
+  //       ),
+  //     );
+  //   }
+  // }
 }

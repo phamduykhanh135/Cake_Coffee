@@ -37,6 +37,19 @@ class Category {
   }
 }
 
+Future<List<Category>> fetchCategoriesFromFirestore() async {
+  try {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('categories').get();
+    return querySnapshot.docs
+        .map((doc) => Category.fromFirestore(doc))
+        .toList();
+  } catch (e) {
+    print('Error fetching categories: $e');
+    return [];
+  }
+}
+
 // Future<List<Category>> fetchCategoriesFromFirestore() async {
 //   try {
 //     QuerySnapshot querySnapshot =
