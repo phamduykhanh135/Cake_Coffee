@@ -20,14 +20,8 @@ class _Management_ProductState extends State<Management_Product>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
+  String _selectedCategoryId = '';
   late TabController _tabController;
-
-  final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _unitController = TextEditingController();
-  final _imageController = TextEditingController();
-
   List<Category> categories = [];
   List<Product> products = [];
 
@@ -38,8 +32,6 @@ class _Management_ProductState extends State<Management_Product>
   }
 
   void _deleteProductFromList(String productId) {
-    // Replace with your actual implementation to delete the product
-    // Update your UI after deletion
     setState(() {
       products.removeWhere((product) => product.id == productId);
     });
@@ -47,7 +39,6 @@ class _Management_ProductState extends State<Management_Product>
 
   void _updateProductInList(Product updatedProduct) {
     setState(() {
-      // Find the index of the updated product in the list and replace it
       int index =
           products.indexWhere((product) => product.id == updatedProduct.id);
       if (index != -1) {
@@ -57,17 +48,32 @@ class _Management_ProductState extends State<Management_Product>
   }
 
   List<Product> _filteredProducts() {
-    // Kiểm tra nếu chuỗi tìm kiếm rỗng (người dùng chưa nhập gì vào trường tìm kiếm)
-    if (_searchQuery.isEmpty) {
-      // Nếu chuỗi tìm kiếm rỗng, trả về toàn bộ danh sách sản phẩm
-      return products;
-    } else {
-      // Nếu chuỗi tìm kiếm không rỗng, thực hiện lọc danh sách sản phẩm
-      return products.where((product) =>
-          // Chuyển tên sản phẩm và chuỗi tìm kiếm thành chữ thường để so sánh không phân biệt hoa thường
-          product.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    List<Product> filtered = products;
+
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered
+          .where((product) =>
+              product.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
     }
+
+    if (_selectedCategoryId.isNotEmpty) {
+      filtered = filtered
+          .where(
+              (product) => product.id_category_product == _selectedCategoryId)
+          .toList();
+    }
+
+    return filtered;
   }
+
+  // List<Product> _filteredProducts() {
+  //   if (_selectedCategoryId.isNotEmpty) {
+  //     return products;
+  //   }
+
+  //   return products.where((product)=>product.id_category_product==_selectedCategoryId).toList();
+  // }
 
   @override
   void initState() {
@@ -87,10 +93,6 @@ class _Management_ProductState extends State<Management_Product>
   @override
   void dispose() {
     _tabController.dispose();
-    _nameController.dispose();
-    _priceController.dispose();
-    _unitController.dispose();
-    _imageController.dispose();
     super.dispose();
   }
 
@@ -169,43 +171,69 @@ class _Management_ProductState extends State<Management_Product>
                 ),
                 Container(
                   child: roundedElevatedButton(
-                      onPressed: () {
-                        AddProductPage.openAddProductDialog(
-                            context, _onAddProduct);
-                      },
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
+                    onPressed: () {
+                      AddProductPage.openAddProductDialog(
+                          context, _onAddProduct);
+                    },
+                    text: "Thêm",
+                    backgroundColor: Colors.green,
+                  ),
+                ),
               ],
             ),
           ),
           Container(
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-                Container(
-                  color: Colors.white,
-                  width: MediaQuery.of(context).size.width *
-                      0.2, // Đặt độ rộng của Container chứa TextFormField
-                  height: 30, // Đặt chiều cao của TextFormField
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.15,
+                  child: DropdownButtonFormField<String>(
+                    value:
+                        _selectedCategoryId.isEmpty ? '' : _selectedCategoryId,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedCategoryId = newValue ?? '';
+                      });
+                    },
+                    items: [
+                      const DropdownMenuItem(
+                        value: '',
+                        child: Text('Tất cả'),
+                      ),
+                      ...categories.map((category) {
+                        return DropdownMenuItem(
+                          value: category.id,
+                          child: Text(category.name),
+                        );
+                      }),
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: 'Danh mục',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.2,
                   child: TextFormField(
                     controller: _searchController,
-                    style: const TextStyle(
-                        fontSize: 15), // Đặt kích thước chữ cho TextFormField
+                    style: const TextStyle(fontSize: 15),
                     decoration: const InputDecoration(
                       labelText: 'Tìm kiếm sản phẩm',
-                      contentPadding: EdgeInsets.symmetric(
-                          vertical: 5,
-                          horizontal:
-                              10), // Đặt padding cho phần nội dung bên trong TextFormField
-                      border:
-                          OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () {},
+                  onPressed: () {
+                    _searchController.clear();
+                  },
                 ),
               ],
             ),
@@ -279,71 +307,53 @@ class _Management_ProductState extends State<Management_Product>
 
   Widget _buildProductTable() {
     List<Product> filteredProducts = _filteredProducts();
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      elevation: 3,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Tên sản phẩm')),
-          DataColumn(label: Text('Danh mục')),
-          DataColumn(label: Text('Đơn vị tính')),
-          DataColumn(label: Text('Giá')),
-          DataColumn(label: Text('Hình ảnh')),
-          DataColumn(label: Text('Thao tác')),
-        ],
-        rows: filteredProducts.map((product) {
-          return DataRow(
-            cells: [
-              DataCell(Text(product.name)),
-              DataCell(Text(_getCategoryNameById(product.id_category_product))),
-              DataCell(Text(product.id_unit_product)),
-              DataCell(Text('${product.price}.000đ')),
-              //DataCell(Image.network(product.image, width: 50, height: 50)),
-              // DataCell(
-              //   FadeInImage.assetNetwork(
-              //     placeholder:
-              //         'assets/abc.png', // Đường dẫn tới ảnh placeholder trong assets của bạn
-              //     image: product.image,
-              //     width: 50,
-              //     height: 50,
-              //     fit: BoxFit.cover,
-              //     imageErrorBuilder: (context, error, stackTrace) {
-              //       return const Icon(Icons.error);
-              //     },
-              //   ),
-              // ),
-              //  DataCell(builImageProduct(decodeBase64Image(product.image))),
-              //DataCell(Text(product.image)),
-              DataCell(
-                product.image.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: product.image,
-                        placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                        //product.image,
-                        // placeholder: (context, url) =>
-                        //     const CircularProgressIndicator(),
-                        // errorWidget: (context, url, error) =>
-                        //     const Icon(Icons.error),
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                      )
-                    : const Icon(Icons.error),
-              ),
-              DataCell(
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    _openEditProductDialog(context, product);
-                  },
+    return SingleChildScrollView(
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        elevation: 3,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Tên sản phẩm')),
+            DataColumn(label: Text('Danh mục')),
+            DataColumn(label: Text('Đơn vị tính')),
+            DataColumn(label: Text('Giá')),
+            DataColumn(label: Text('Hình ảnh')),
+            DataColumn(label: Text('Thao tác')),
+          ],
+          rows: filteredProducts.map((product) {
+            return DataRow(
+              cells: [
+                DataCell(Text(product.name)),
+                DataCell(
+                    Text(_getCategoryNameById(product.id_category_product))),
+                DataCell(Text(product.id_unit_product)),
+                DataCell(Text('${product.price}.000đ')),
+                DataCell(
+                  product.image.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: product.image,
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
+                          width: 30,
+                          height: 30,
+                          fit: BoxFit.cover,
+                        )
+                      : const Icon(Icons.error),
                 ),
-              )
-            ],
-          );
-        }).toList(),
+                DataCell(
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      _openEditProductDialog(context, product);
+                    },
+                  ),
+                )
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -362,23 +372,24 @@ class _Management_ProductState extends State<Management_Product>
   }
 }
 
-Widget builImageProduct(Uint8List? image) {
-  if (image != null) {
-    return CircleAvatar(
-      radius: 50,
-      backgroundColor: Colors.transparent,
-      backgroundImage: MemoryImage(image),
-    );
-  } else {
-    return const CircleAvatar(
-      radius: 50,
-      backgroundColor: Colors.transparent,
-      backgroundImage: AssetImage('assets/png.png'),
-    );
-  }
-}
 
-Uint8List? decodeBase64Image(String? base64String) {
-  if (base64String == null || base64String.isEmpty) return null;
-  return Uint8List.fromList(base64.decode(base64String));
-}
+// Widget builImageProduct(Uint8List? image) {
+//   if (image != null) {
+//     return CircleAvatar(
+//       radius: 50,
+//       backgroundColor: Colors.transparent,
+//       backgroundImage: MemoryImage(image),
+//     );
+//   } else {
+//     return const CircleAvatar(
+//       radius: 50,
+//       backgroundColor: Colors.transparent,
+//       backgroundImage: AssetImage('assets/png.png'),
+//     );
+//   }
+// }
+
+// Uint8List? decodeBase64Image(String? base64String) {
+//   if (base64String == null || base64String.isEmpty) return null;
+//   return Uint8List.fromList(base64.decode(base64String));
+// }
