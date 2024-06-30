@@ -1,202 +1,157 @@
+import 'package:cake_coffee/models/khanh/area.dart';
+import 'package:cake_coffee/models/khanh/table.dart';
+import 'package:cake_coffee/presents/khanh/add_area.dart';
+import 'package:cake_coffee/presents/khanh/add_table.dart';
+import 'package:cake_coffee/presents/khanh/edit_area.dart';
+import 'package:cake_coffee/presents/khanh/edit_table.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
-import 'package:flutter/material.dart'; // Import your Management_Product widget here
+import 'package:flutter/material.dart';
 
 class Management_Table extends StatefulWidget {
   const Management_Table({super.key});
 
   @override
-  _Management_Table createState() => _Management_Table();
+  _Management_TableState createState() => _Management_TableState();
 }
 
-class _Management_Table extends State<Management_Table>
+class _Management_TableState extends State<Management_Table>
     with SingleTickerProviderStateMixin {
-  final List<Map<String, String>> categories_table = [
-    {'id': '001', 'name': 'Ngoài sân', 'description': 'Không có'},
-    {'id': '002', 'name': 'Phòng lạnh', 'description': 'Không có'},
-  ];
-
-  final List<Map<String, String>> tables = [
-    {
-      'id': 'T001',
-      'category_table_Id': '001',
-      'name': 'Bàn 1',
-      'description': 'Không có',
-    },
-    {
-      'id': 'T002',
-      'category_table_Id': '002',
-      'name': 'Bàn 2',
-      'description': 'Không có',
-    },
-    {
-      'id': 'T003',
-      'category_table_Id': '001',
-      'name': 'Cà bàn 3',
-      'description': 'Không có',
-    },
-  ];
-  String _getCategoryNameById(String categoryId) {
-    final categoryTable = categories_table.firstWhere(
-      (categoryTable) => categoryTable['id'] == categoryId,
-      orElse: () => {'name': 'Unknown'},
-    );
-    return categoryTable['name'] ?? 'Unknown';
-  }
-
+  final TextEditingController _searchTableController = TextEditingController();
+  final TextEditingController _searchAreaController = TextEditingController();
+  String _searchTableQuery = '';
+  String _searchAreaQuery = '';
+  String _selectedAreaId = '';
   late TabController _tabController;
-  void _showOptionsDialog(Map<String, String> data) {
-    // final bool isCategory = data.containsKey('categoryId');
+  List<Area> areas = [];
+  List<Tables> tables = [];
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Tùy chọn'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue:
-                            data['id'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['id'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //labelText: 'ID',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue:
-                            data['name'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['name'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //labelText: 'Name',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue: data[
-                            'description'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['description'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //  labelText: 'Mô tả',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Text('ID: ${data['id']}'),
-              // Text('Tên: ${data['name']}'),
-              // Text('Mô tả: ${data['description']}'),
-              // if (isCategory) ...[
-              //   Text('Danh mục: ${_getCategoryNameById(data['categoryId']!)}'),
-              // ],
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Đóng dialog
-                  _editItem(data); // Xử lý khi nhấn nút Sửa
-                },
-                child: const Text('Sửa'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Đóng dialog
-                  _deleteItem(data); // Xử lý khi nhấn nút Xóa
-                },
-                child: const Text('Xóa'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _onAddTable(Tables newTable) {
+    setState(() {
+      tables.add(newTable);
+    });
   }
 
-  void _editItem(Map<String, String> data) {
-    // Xử lý khi nhấn nút Sửa
-    print('Sửa: ${data.toString()}');
+  void _onAddArea(Area newArea) {
+    setState(() {
+      areas.add(newArea);
+    });
   }
 
-  void _deleteItem(Map<String, String> data) {
-    // Xử lý khi nhấn nút Xóa
-    print('Xóa: ${data.toString()}');
+  void _deleteTableFromList(String tableId) {
+    setState(() {
+      tables.removeWhere((table) => table.id == tableId);
+    });
+  }
+
+  void _updateTableInList(Tables updatedTable) {
+    setState(() {
+      int index = tables.indexWhere((table) => table.id == updatedTable.id);
+      if (index != -1) {
+        tables[index] = updatedTable;
+      }
+    });
+  }
+
+  void _deleteAreaFromList(String areaId) {
+    setState(() {
+      areas.removeWhere((area) => area.id == areaId);
+    });
+  }
+
+  void _updateAreaInList(Area updatedArea) {
+    setState(() {
+      int index = areas.indexWhere((area) => area.id == updatedArea.id);
+      if (index != -1) {
+        areas[index] = updatedArea;
+      }
+    });
+  }
+
+  List<Area> _filteredAreas() {
+    List<Area> filtered = areas;
+
+    if (_searchAreaQuery.isNotEmpty) {
+      filtered = filtered
+          .where((area) =>
+              area.name.toLowerCase().contains(_searchAreaQuery.toLowerCase()))
+          .toList();
+    }
+
+    return filtered;
+  }
+
+  List<Tables> _filteredTables() {
+    List<Tables> filtered = tables;
+
+    if (_searchTableQuery.isNotEmpty) {
+      filtered = filtered
+          .where((table) => table.name
+              .toLowerCase()
+              .contains(_searchTableQuery.toLowerCase()))
+          .toList();
+    }
+
+    if (_selectedAreaId.isNotEmpty) {
+      filtered =
+          filtered.where((table) => table.id_area == _selectedAreaId).toList();
+    }
+
+    return filtered;
   }
 
   @override
   void initState() {
+    //Cập nhật trạng thái của _searchQuery khi người dùng nhập liệu:
+
     super.initState();
-    _tabController = TabController(
-        length: 2, vsync: this); // Two tabs: Products and Categories
+    _searchTableController.addListener(() {
+      setState(() {
+        _searchTableQuery = _searchTableController.text;
+      });
+    });
+
+    _searchAreaController.addListener(() {
+      setState(() {
+        _searchAreaQuery = _searchAreaController.text;
+      });
+    });
+    _tabController = TabController(length: 2, vsync: this);
+    loadAreas();
+    loadTables();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void loadAreas() async {
+    List<Area> fetchedAreas = await fetchAreasFromFirestore();
+    setState(() {
+      areas = fetchedAreas;
+    });
+  }
+
+  void loadTables() async {
+    List<Tables> fetchedTables = await fetchTablesFromFirestore();
+    setState(() {
+      tables = fetchedTables;
+    });
+  }
+
+  String _getAreaNameById(String areaId) {
+    final area = areas.firstWhere(
+      (area) => area.id == areaId,
+      orElse: () => Area(
+        id: 'unknown',
+        name: 'Unknown',
+        create_time: DateTime.now(),
+        update_time: DateTime.now(),
+        delete_time: DateTime.now(),
+      ),
+    );
+    return area.name;
   }
 
   @override
@@ -206,31 +161,24 @@ class _Management_Table extends State<Management_Table>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            // width: MediaQuery.of(context).size.width *
-            //     0.3, // Width of the left sidebar for TabBar
+            //  width: MediaQuery.of(context).size.width * 0.3,
             color: Colors.grey[200],
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                //const SizedBox(height: 20),
-                TabBar(
-                  controller: _tabController,
-                  tabs: const [
-                    Tab(text: 'Bàn'), // First tab: Products
-                    Tab(text: 'Khu vực'), // Second tab: Categories
-                  ],
-                  labelColor: Colors.blue,
-                  unselectedLabelColor: Colors.black,
-                ),
+            child: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Bàn'),
+                Tab(text: 'Khu vực'),
               ],
+              labelColor: Colors.blue,
+              unselectedLabelColor: Colors.black,
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _table(), // Content for Products tab
-                _area()
+                _buildTableTab(),
+                _buildAreaTab(),
               ],
             ),
           ),
@@ -239,282 +187,362 @@ class _Management_Table extends State<Management_Table>
     );
   }
 
-  Widget _table() {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        // Placeholder for Categories tab content, replace with your actual implementation
-        child: Column(
-          children: [
-            const Row(
-              children: [
-                Text(
-                  'Thông tin bàn',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            // SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Row(
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width *
-                            0.2, // Đặt độ rộng của Container chứa TextFormField
-                        height: 30, // Đặt chiều cao của TextFormField
-                        child: TextFormField(
-                          style: const TextStyle(
-                              fontSize:
-                                  15), // Đặt kích thước chữ cho TextFormField
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal:
-                                    10), // Đặt padding cho phần nội dung bên trong TextFormField
-                            border:
-                                OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  child: roundedElevatedButton(
-                      onPressed: () {},
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
-              ],
-            ),
-
-            SizedBox(
-                width: MediaQuery.of(context).size.width, child: _buildTable()),
-          ],
-        ));
-  }
-
-  Widget _area() {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        // Placeholder for Categories tab content, replace with your actual implementation
-        child: Column(
-          children: [
-            const Row(
-              children: [
-                Text(
-                  'Thông tin danh mục',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            // SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Row(
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width *
-                            0.2, // Đặt độ rộng của Container chứa TextFormField
-                        height: 30, // Đặt chiều cao của TextFormField
-                        child: TextFormField(
-                          style: const TextStyle(
-                              fontSize:
-                                  15), // Đặt kích thước chữ cho TextFormField
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal:
-                                    10), // Đặt padding cho phần nội dung bên trong TextFormField
-                            border:
-                                OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  child: roundedElevatedButton(
-                      onPressed: () {},
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
-              ],
-            ),
-
-            SizedBox(
-                width: MediaQuery.of(context).size.width, child: _buildArea()),
-          ],
-        ));
-  }
-
-  Widget _buildArea() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      elevation: 3,
-      child: DataTable(
-        // columnSpacing: 343, // Điều chỉnh khoảng cách giữa các cột
-        // horizontalMargin: 200, // Điều chỉnh margin ngang của DataTable
-        columns: const [
-          DataColumn(
-            label: Text('Mã khu vực',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Tên khu vực',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Mô tả', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label:
-                Text('Thao tác', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-        rows: categories_table.map((categoryTable) {
-          return DataRow(
-            cells: [
-              DataCell(Text(categoryTable['id'] ?? '')),
-              DataCell(Text(categoryTable['name'] ?? '')),
-              DataCell(Text(categoryTable['description'] ?? '')),
-              DataCell(Container(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                categoryTable); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Sửa",
-                          backgroundColor: Colors.yellow),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                categoryTable); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Xóa",
-                          backgroundColor: Colors.red),
-                    ),
-                  ],
-                ),
-              )),
-            ],
-            // onSelectChanged: (isSelected) {
-            //   _showOptionsDialog(
-            //       category); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-            // },
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTable() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      elevation: 3,
-      child: DataTable(
-        //columnSpacing: 185,
-        columns: const [
-          DataColumn(
-            label: Text(
-              'Mã bàn',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'Khu vực',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'Tên bàn',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'Mô tả',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label:
-                Text('Thao tác', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-        rows: List<DataRow>.generate(tables.length, (index) {
-          var table = tables[index];
-          return DataRow(
-            cells: [
-              DataCell(Text(table['id'] ?? '')),
-              DataCell(
-                Text(
-                  _getCategoryNameById(table['category_table_Id'] ?? ''),
+  Widget _buildTableTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Thông tin bàn',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              Container(
+                child: roundedElevatedButton(
+                  onPressed: () {
+                    AddTablePage.openAddTableDialog(context, _onAddTable);
+                  },
+                  text: "Thêm",
+                  backgroundColor: Colors.green,
                 ),
               ),
-              DataCell(Text(table['name'] ?? '')),
-              DataCell(Text(table['description'] ?? '')),
-              // DataCell(
-              //   Text(
-              //     _getCategoryNameById(product['category_table_Id'] ?? ''),
-              //   ),
-              // ),
-              DataCell(Container(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                table); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Sửa",
-                          backgroundColor: Colors.yellow),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                table); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Xóa",
-                          backgroundColor: Colors.red),
-                    ),
-                  ],
-                ),
-              )),
             ],
-          );
-        }),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.15,
+                child: DropdownButtonFormField<String>(
+                  value: _selectedAreaId.isEmpty ? '' : _selectedAreaId,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedAreaId = newValue ?? '';
+                    });
+                  },
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('Tất cả'),
+                    ),
+                    ...areas.map((area) {
+                      return DropdownMenuItem(
+                        value: area.id,
+                        child: Text(area.name),
+                      );
+                    }),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Khu vực',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.2,
+                child: TextFormField(
+                  controller: _searchTableController,
+                  style: const TextStyle(fontSize: 15),
+                  decoration: const InputDecoration(
+                    labelText: 'Tìm kiếm bàn',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  _searchTableController.clear();
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: _buildTableTable(),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildAreaTab() {
+    return SizedBox(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Đảm bảo căn lề bắt đầu từ đầu dòng
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Thông tin khu vực',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                Container(
+                  child: roundedElevatedButton(
+                    onPressed: () {
+                      Add_Area.openAdd_Area(context, _onAddArea);
+                    },
+                    text: "Thêm",
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.2,
+                  child: TextFormField(
+                    controller: _searchAreaController,
+                    style: const TextStyle(fontSize: 15),
+                    decoration: const InputDecoration(
+                      labelText: 'Tìm kiếm khu vực',
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    _searchAreaController.clear();
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SizedBox(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _buildAreaTable(), // Đặt _buildCategoryTable() ở đây
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildAreaTable() {
+    List<Area> filteredCAreas = _filteredAreas();
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Column(
+        children: [
+          // Header row
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            elevation: 3,
+            child: Container(
+              color: const Color.fromARGB(255, 207, 205, 205),
+              child: const Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('STT'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Tên khu vực'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Scrollable rows
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: filteredCAreas.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Area area = entry.value;
+                  return Column(
+                    children: [
+                      Card(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                          elevation: 3,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => _openEditAreaDialog(context, area),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text('${index + 1}'),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(area.name),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ))
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableTable() {
+    List<Tables> filteredTables = _filteredTables();
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Column(
+        children: [
+          // Header row
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            elevation: 3,
+            child: Container(
+              color: const Color.fromARGB(255, 207, 205, 205),
+              margin: const EdgeInsets.all(0),
+              child: const Row(
+                children: [
+                  Expanded(
+                    //width: 50,
+                    flex: 1,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('STT'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Khu vực'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Tên bàn'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Scrollable rows
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: filteredTables.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Tables table = entry.value;
+                  return Column(
+                    children: [
+                      Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)),
+                        elevation: 3,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => _openEditTableDialog(context, table),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${index + 1}'),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(_getAreaNameById(table.id_area)),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(table.name),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openEditTableDialog(BuildContext context, Tables table) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditTablePage(
+          table: table,
+          onUpdateTable: _updateTableInList,
+          onDeleteTable: _deleteTableFromList, // Pass the callback
+        );
+      },
+    );
+  }
+
+  void _openEditAreaDialog(BuildContext context, Area area) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditAreaPage(
+          area: area,
+          onUpdateArea: _updateAreaInList,
+          onDeleteArea: _deleteAreaFromList, // Pass the callback
+        );
+      },
     );
   }
 }

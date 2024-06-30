@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Category {
-  final String id;
-  final String name;
-  final DateTime? createTime;
-  final DateTime? updateTime;
-  final DateTime? deleteTime;
+  String id;
+  String name;
+  DateTime? createTime;
+  DateTime? updateTime;
+  DateTime? deleteTime;
 
   Category({
     required this.id,
@@ -21,9 +21,13 @@ class Category {
     return Category(
       id: doc.id,
       name: data['name'] ?? '',
-      createTime: (data['create_time'] as Timestamp?)?.toDate(),
-      updateTime: (data['update_time'] as Timestamp?)?.toDate(),
-      deleteTime: (data['delete_time'] as Timestamp?)?.toDate(),
+      createTime: (data['create_time'] as Timestamp).toDate(),
+      updateTime: data['update_time'] != null
+          ? (data['update_time'] as Timestamp).toDate()
+          : null,
+      deleteTime: data['delete_time'] != null
+          ? (data['delete_time'] as Timestamp).toDate()
+          : null,
     );
   }
 

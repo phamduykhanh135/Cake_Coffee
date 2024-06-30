@@ -1,119 +1,70 @@
-// import 'package:flutter/material.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 
 // class Product {
-//   final String id;
-//   final String idCategoryProducts;
-//   final String name;
-//   final double price;
-//   final String idUnitProducts;
-//   final String image;
-//   final DateTime createTime;
-//   final DateTime updateTime;
-//   final DateTime deleteTime;
+//   String id;
+//   String id_category_product;
+//   String name;
+//   double price;
+//   String id_unit_product;
+//   String image;
+//   DateTime? create_time;
+//   DateTime? update_time;
+//   DateTime? delete_time;
+//   //9
 
 //   Product({
 //     required this.id,
-//     required this.idCategoryProducts,
+//     required this.id_category_product,
 //     required this.name,
 //     required this.price,
-//     required this.idUnitProducts,
+//     required this.id_unit_product,
 //     required this.image,
-//     required this.createTime,
-//     required this.updateTime,
-//     required this.deleteTime,
+//     required this.create_time,
+//     required this.update_time,
+//     required this.delete_time,
 //   });
-// }
 
-// class ProductDataTablePage extends StatefulWidget {
-//   @override
-//   _ProductDataTablePageState createState() => _ProductDataTablePageState();
-// }
-
-// class _ProductDataTablePageState extends State<ProductDataTablePage> {
-//   List<Product> products = [];
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     fetchProducts();
-//   }
-
-//   void fetchProducts() async {
-//     try {
-//       QuerySnapshot querySnapshot =
-//           await FirebaseFirestore.instance.collection('products').get();
-//       List<Product> fetchedProducts = querySnapshot.docs.map((doc) {
-//         var data = doc.data();
-//         return Product(
-//           id: doc.id,
-//           idCategoryProducts: data['idCategoryProducts'],
-//           name: data['name'],
-//           price: (data['price'] ?? 0.0).toDouble(),
-//           idUnitProducts: data['idUnitProducts'] ?? '',
-//           image: data['image'],
-//           createTime: data['createTime'] != null
-//               ? (data['createTime'] as Timestamp).toDate()
-//               : DateTime.now(),
-//           updateTime: data['updateTime'] != null
-//               ? (data['updateTime'] as Timestamp).toDate()
-//               : DateTime.now(),
-//           deleteTime: data['deleteTime'] != null
-//               ? (data['deleteTime'] as Timestamp).toDate()
-//               : DateTime.now(),
-//         );
-//       }).toList();
-
-//       setState(() {
-//         products = fetchedProducts;
-//       });
-//     } catch (e) {
-//       print('Error fetching products: $e');
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Product Management'),
-//       ),
-//       body: SingleChildScrollView(
-//         child: DataTable(
-//           columns: const [
-//             DataColumn(label: Text('ID')),
-//             DataColumn(label: Text('Category ID')),
-//             DataColumn(label: Text('Name')),
-//             DataColumn(label: Text('Price')),
-//             DataColumn(label: Text('Unit ID')),
-//             DataColumn(label: Text('Image')),
-//             DataColumn(label: Text('Create Time')),
-//             DataColumn(label: Text('Update Time')),
-//             DataColumn(label: Text('Delete Time')),
-//           ],
-//           rows: products.map((product) {
-//             return DataRow(
-//               cells: [
-//                 DataCell(Text(product.id)),
-//                 DataCell(Text(product.idCategoryProducts)),
-//                 DataCell(Text(product.name)),
-//                 DataCell(Text('${product.price}')),
-//                 DataCell(Text(product.idUnitProducts)),
-//                 DataCell(product.image != null
-//                     ? Image.network(product.image)
-//                     : Text('No image')),
-//                 DataCell(Text(product.createTime.toString())),
-//                 DataCell(Text(product.updateTime.toString())),
-//                 DataCell(Text(product.deleteTime.toString())),
-//               ],
-//             );
-//           }).toList(),
-//         ),
-//       ),
+//   factory Product.fromFirestore(DocumentSnapshot doc) {
+//     Map data = doc.data() as Map<String, dynamic>;
+//     return Product(
+//       id: doc.id,
+//       id_category_product: data['id_category_product'] ?? '',
+//       name: data['name'] ?? '',
+//       price: (data['price'] as num).toDouble(),
+//       id_unit_product: data['id_unit_product'] ?? '',
+//       image: data['image'] ?? '',
+//       create_time: (data['create_time'] as Timestamp).toDate(),
+//       update_time: data['update_time'] != null
+//           ? (data['update_time'] as Timestamp).toDate()
+//           : null,
+//       delete_time: data['delete_time'] != null
+//           ? (data['delete_time'] as Timestamp).toDate()
+//           : null,
 //     );
 //   }
+
+//   // Method to convert Product instance to a map for storing in Firestore
+//   Map<String, dynamic> toMap() {
+//     return {
+//       'id_category_product': id_category_product,
+//       'name': name,
+//       'price': price,
+//       'id_unit_product': id_unit_product,
+//       'image': image,
+//       'create_time': create_time,
+//       'update_time': update_time,
+//       'delete_time': delete_time,
+//     };
+//   }
 // }
-      
-    
 
-
+// Future<List<Product>> fetchProductsFromFirestore() async {
+//   try {
+//     QuerySnapshot querySnapshot =
+//         await FirebaseFirestore.instance.collection('products').get();
+//     return querySnapshot.docs.map((doc) => Product.fromFirestore(doc)).toList();
+//   } catch (e) {
+//     print('Error fetching products: $e');
+//     return [];
+//   }
+// }

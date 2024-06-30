@@ -1,218 +1,167 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cake_coffee/models/khanh/category_ingredient.dart';
+import 'package:cake_coffee/models/khanh/ingredient.dart';
+import 'package:cake_coffee/presents/khanh/add_category_ingredient.dart';
+import 'package:cake_coffee/presents/khanh/add_ingredient.dart';
+import 'package:cake_coffee/presents/khanh/edit_category_ingredient.dart';
+import 'package:cake_coffee/presents/khanh/edit_ingredient.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
-import 'package:flutter/material.dart'; // Import your Management_Product widget here
+import 'package:flutter/material.dart';
 
 class Management_Ingredient_Screen extends StatefulWidget {
   const Management_Ingredient_Screen({super.key});
 
   @override
-  _Management_Ingredient_Screen createState() =>
-      _Management_Ingredient_Screen();
+  _Management_Ingredient_ScreenState createState() =>
+      _Management_Ingredient_ScreenState();
 }
 
-class _Management_Ingredient_Screen extends State<Management_Ingredient_Screen>
+class _Management_Ingredient_ScreenState
+    extends State<Management_Ingredient_Screen>
     with SingleTickerProviderStateMixin {
-  final List<Map<String, String>> category_ingredidents = [
-    {
-      'id': '001',
-      'name': 'Nguyên liệu',
-    },
-    {
-      'id': '002',
-      'name': 'Dụng cụ',
-    },
-  ];
-
-  final List<Map<String, String>> ingredidents = [
-    {
-      'id': 'P001',
-      'category_ingredidents_Id': '001',
-      'name': 'Bột mì',
-      'unit': 'kg',
-      'number': '20',
-      'price': '12.000đ',
-      'description': 'Không có',
-    },
-    {
-      'id': 'P001',
-      'category_ingredidents_Id': '002',
-      'name': 'Ly',
-      'unit': 'kg',
-      'number': '20',
-      'price': '12.000đ',
-      'description': 'Không có',
-    },
-    {
-      'id': 'P001',
-      'category_ingredidents_Id': '001',
-      'name': 'Bột mì',
-      'unit': 'kg',
-      'number': '20',
-      'price': '12.000đ',
-      'description': 'Không có',
-    },
-  ];
-  String _getCategoryNameById(String categoryId) {
-    final category = category_ingredidents.firstWhere(
-      (category) => category['id'] == categoryId,
-      orElse: () => {'name': 'Unknown'},
-    );
-    return category['name'] ?? 'Unknown';
-  }
-
+  final TextEditingController _searchIngredientController =
+      TextEditingController();
+  final TextEditingController _searchCategoryController =
+      TextEditingController();
+  String _searchIngredientQuery = '';
+  String _searchCategoryQuery = '';
+  String _selectedCategoryId = '';
   late TabController _tabController;
-  void _showOptionsDialog(Map<String, String> data) {
-    // final bool isCategory = data.containsKey('categoryId');
+  List<Category_Ingredient> category_ingredidents = [];
+  List<Ingredient> ingredients = [];
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Tùy chọn'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue:
-                            data['id'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['id'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //labelText: 'ID',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue:
-                            data['name'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['name'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //labelText: 'Name',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
-                    //  Text('ID: ${data['id']}'),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width *
-                          0.2, // Đặt độ rộng của Container chứa TextFormField
-                      height: 30, // Đặt chiều cao của TextFormField
-                      child: TextFormField(
-                        initialValue: data[
-                            'description'], // Giá trị ban đầu của TextFormField
-                        onChanged: (newValue) {
-                          // Xử lý khi giá trị của TextFormField thay đổi
-                          setState(() {
-                            data['description'] =
-                                newValue; // Cập nhật giá trị mới vào Map
-                          });
-                        },
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          //  labelText: 'Mô tả',
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Text('ID: ${data['id']}'),
-              // Text('Tên: ${data['name']}'),
-              // Text('Mô tả: ${data['description']}'),
-              // if (isCategory) ...[
-              //   Text('Danh mục: ${_getCategoryNameById(data['categoryId']!)}'),
-              // ],
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Đóng dialog
-                  _editItem(data); // Xử lý khi nhấn nút Sửa
-                },
-                child: const Text('Sửa'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Đóng dialog
-                  _deleteItem(data); // Xử lý khi nhấn nút Xóa
-                },
-                child: const Text('Xóa'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _onAddIngredient(Ingredient newIngredient) {
+    setState(() {
+      ingredients.add(newIngredient);
+    });
   }
 
-  void _editItem(Map<String, String> data) {
-    // Xử lý khi nhấn nút Sửa
-    print('Sửa: ${data.toString()}');
+  void _onAddCategory(Category_Ingredient newCategory) {
+    setState(() {
+      category_ingredidents.add(newCategory);
+    });
   }
 
-  void _deleteItem(Map<String, String> data) {
-    // Xử lý khi nhấn nút Xóa
-    print('Xóa: ${data.toString()}');
+  void _deleteIngredientFromList(String ingredientId) {
+    setState(() {
+      ingredients.removeWhere((ingredient) => ingredient.id == ingredientId);
+    });
+  }
+
+  void _updateIngredientInList(Ingredient updatedIngredient) {
+    setState(() {
+      int index = ingredients
+          .indexWhere((ingredient) => ingredient.id == updatedIngredient.id);
+      if (index != -1) {
+        ingredients[index] = updatedIngredient;
+      }
+    });
+  }
+
+  void _deleteCategory_IngredientFromList(String categoryId) {
+    setState(() {
+      category_ingredidents
+          .removeWhere((category) => category.id == categoryId);
+    });
+  }
+
+  void _updateCategory_IngredientInList(Category_Ingredient updatedCategory) {
+    setState(() {
+      int index = category_ingredidents
+          .indexWhere((category) => category.id == updatedCategory.id);
+      if (index != -1) {
+        category_ingredidents[index] = updatedCategory;
+      }
+    });
+  }
+
+  List<Category_Ingredient> _filteredCategories() {
+    List<Category_Ingredient> filtered = category_ingredidents;
+
+    if (_searchCategoryQuery.isNotEmpty) {
+      filtered = filtered
+          .where((category) => category.name
+              .toLowerCase()
+              .contains(_searchCategoryQuery.toLowerCase()))
+          .toList();
+    }
+
+    return filtered;
+  }
+
+  List<Ingredient> _filteredIngredients() {
+    List<Ingredient> filtered = ingredients;
+
+    if (_searchIngredientQuery.isNotEmpty) {
+      filtered = filtered
+          .where((ingredient) => ingredient.name
+              .toLowerCase()
+              .contains(_searchIngredientQuery.toLowerCase()))
+          .toList();
+    }
+
+    if (_selectedCategoryId.isNotEmpty) {
+      filtered = filtered
+          .where((ingredient) =>
+              ingredient.id_category_ingredient == _selectedCategoryId)
+          .toList();
+    }
+
+    return filtered;
   }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-        length: 2, vsync: this); // Two tabs: Products and Categories
+    _searchIngredientController.addListener(() {
+      setState(() {
+        _searchIngredientQuery = _searchIngredientController.text;
+      });
+    });
+
+    _searchCategoryController.addListener(() {
+      setState(() {
+        _searchCategoryQuery = _searchCategoryController.text;
+      });
+    });
+    _tabController = TabController(length: 2, vsync: this);
+    loadCategories();
+    loadIngredients();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  void loadCategories() async {
+    List<Category_Ingredient> fetchedCategories =
+        await fetchloadCategory_IngredientsFromFirestore();
+    setState(() {
+      category_ingredidents = fetchedCategories;
+    });
+  }
+
+  void loadIngredients() async {
+    List<Ingredient> fetchedIngredients = await fetchIngredientsFromFirestore();
+    setState(() {
+      ingredients = fetchedIngredients;
+    });
+  }
+
+  String _getCategoryNameById(String categoryId) {
+    final category = category_ingredidents.firstWhere(
+      (category) => category.id == categoryId,
+      orElse: () => Category_Ingredient(
+        id: 'unknown',
+        name: 'Unknown',
+        create_time: DateTime.now(),
+        update_time: DateTime.now(),
+        delete_time: DateTime.now(),
+      ),
+    );
+    return category.name;
   }
 
   @override
@@ -222,31 +171,23 @@ class _Management_Ingredient_Screen extends State<Management_Ingredient_Screen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            // width: MediaQuery.of(context).size.width *
-            //     0.3, // Width of the left sidebar for TabBar
             color: Colors.grey[200],
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                //const SizedBox(height: 20),
-                TabBar(
-                  controller: _tabController,
-                  tabs: const [
-                    Tab(text: 'Nguyên liệu'), // First tab: Products
-                    Tab(text: 'Danh mục'), // Second tab: Categories
-                  ],
-                  labelColor: Colors.blue,
-                  unselectedLabelColor: Colors.black,
-                ),
+            child: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: 'Nguyên liệu'),
+                Tab(text: 'Danh mục'),
               ],
+              labelColor: Colors.blue,
+              unselectedLabelColor: Colors.black,
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _ingredidents(), // Content for Products tab
-                _category()
+                _buildIngredientTab(),
+                _buildCategory_IngredientTab(),
               ],
             ),
           ),
@@ -255,318 +196,454 @@ class _Management_Ingredient_Screen extends State<Management_Ingredient_Screen>
     );
   }
 
-  Widget _ingredidents() {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        // Placeholder for Categories tab content, replace with your actual implementation
-        child: Column(
-          children: [
-            const Row(
-              children: [
-                Text(
-                  'Thông tin nguyên liệu',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+  Widget _buildIngredientTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Thông tin nguyên liệu',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              Container(
+                child: roundedElevatedButton(
+                  onPressed: () {
+                    AddIngredientPage.openAddIngredientDialog(
+                        context, _onAddIngredient);
+                  },
+                  text: "Thêm",
+                  backgroundColor: Colors.green,
                 ),
-              ],
-            ),
-            // SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Row(
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width *
-                            0.2, // Đặt độ rộng của Container chứa TextFormField
-                        height: 30, // Đặt chiều cao của TextFormField
-                        child: TextFormField(
-                          style: const TextStyle(
-                              fontSize:
-                                  15), // Đặt kích thước chữ cho TextFormField
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal:
-                                    10), // Đặt padding cho phần nội dung bên trong TextFormField
-                            border:
-                                OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {},
-                      ),
-                    ],
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.15,
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategoryId.isEmpty ? '' : _selectedCategoryId,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategoryId = newValue ?? '';
+                    });
+                  },
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('Tất cả'),
+                    ),
+                    ...category_ingredidents.map((category) {
+                      return DropdownMenuItem(
+                        value: category.id,
+                        child: Text(category.name),
+                      );
+                    }),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Danh mục',
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                Container(
-                  child: roundedElevatedButton(
-                      onPressed: () {},
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
-              ],
-            ),
-
-            SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: _buildIngredientTable()),
-          ],
-        ));
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.2,
+                child: TextFormField(
+                  controller: _searchIngredientController,
+                  style: const TextStyle(fontSize: 15),
+                  decoration: const InputDecoration(
+                    labelText: 'Tìm kiếm nguyên liệu',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  _searchIngredientController.clear();
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: _buildIngredientTable(),
+          ),
+        )
+      ],
+    );
   }
 
-  Widget _category() {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        // Placeholder for Categories tab content, replace with your actual implementation
-        child: Column(
-          children: [
-            const Row(
+  Widget _buildCategory_IngredientTab() {
+    return SizedBox(
+      width: 500,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Đảm bảo căn lề bắt đầu từ đầu dòng
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Thông tin danh mục',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
-              ],
-            ),
-            // SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Row(
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width *
-                            0.2, // Đặt độ rộng của Container chứa TextFormField
-                        height: 30, // Đặt chiều cao của TextFormField
-                        child: TextFormField(
-                          style: const TextStyle(
-                              fontSize:
-                                  15), // Đặt kích thước chữ cho TextFormField
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal:
-                                    10), // Đặt padding cho phần nội dung bên trong TextFormField
-                            border:
-                                OutlineInputBorder(), // Đặt đường viền xung quanh TextFormField
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
                 Container(
                   child: roundedElevatedButton(
-                      onPressed: () {},
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
+                    onPressed: () {
+                      Add_Category_Ingredient.openAdd_Category_IngredientDialog(
+                          context, _onAddCategory);
+                    },
+                    text: "Thêm",
+                    backgroundColor: Colors.green,
+                  ),
+                ),
               ],
             ),
-
-            SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: _buildCategory_Ingredient()),
-          ],
-        ));
-  }
-
-  Widget _buildCategory_Ingredient() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      elevation: 3,
-      child: DataTable(
-        // columnSpacing: 343, // Điều chỉnh khoảng cách giữa các cột
-        // horizontalMargin: 200, // Điều chỉnh margin ngang của DataTable
-        columns: const [
-          DataColumn(
-            label: Text('Mã danh mục',
-                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          DataColumn(
-            label: Text('Tên danh mục',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.2,
+                  child: TextFormField(
+                    controller: _searchCategoryController,
+                    style: const TextStyle(fontSize: 15),
+                    decoration: const InputDecoration(
+                      labelText: 'Tìm kiếm danh mục',
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    _searchCategoryController.clear();
+                  },
+                ),
+              ],
+            ),
           ),
-          DataColumn(
-            label:
-                Text('Thao tác', style: TextStyle(fontWeight: FontWeight.bold)),
+          Expanded(
+            child: SizedBox(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child:
+                    _buildCategory_IngredientTable(), // Đặt _buildCategoryTable() ở đây
+              ),
+            ),
           ),
         ],
-        rows: category_ingredidents.map((category) {
-          return DataRow(
-            cells: [
-              DataCell(Text(category['id'] ?? '')),
-              DataCell(Text(category['name'] ?? '')),
-              DataCell(Container(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                category); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Sửa",
-                          backgroundColor: Colors.yellow),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                category); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Xóa",
-                          backgroundColor: Colors.red),
-                    ),
-                  ],
-                ),
-              )),
-            ],
-            // onSelectChanged: (isSelected) {
-            //   _showOptionsDialog(
-            //       category); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-            // },
-          );
-        }).toList(),
       ),
     );
   }
 
   Widget _buildIngredientTable() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      elevation: 3,
-      child: DataTable(
-        //columnSpacing: 185,
-        columns: const [
-          DataColumn(
-            label: Text(
-              'Mã nguyên liệu',
-              style: TextStyle(fontWeight: FontWeight.bold),
+    List<Ingredient> filteredIngredients = _filteredIngredients();
+
+    return Column(
+      children: [
+        // Header row
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+          elevation: 3,
+          child: Container(
+            color: const Color.fromARGB(255, 207, 205, 205),
+            margin: const EdgeInsets.all(0),
+            child: const Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('STT'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Ngày tạo'),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Tên nguyên liệu'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Danh mục'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Đơn vị tính'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Giá'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Số lượng'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Tổng giá'),
+                  ),
+                ),
+              ],
             ),
           ),
-          DataColumn(
-            label: Text(
-              'Danh mục',
-              style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        // Scrollable rows
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: filteredIngredients.asMap().entries.map((entry) {
+                int index = entry.key;
+                Ingredient ingredient = entry.value;
+                return Column(
+                  children: [
+                    Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)),
+                        elevation: 3,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () =>
+                              _openEditIngredientDialog(context, ingredient),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${index + 1}'),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child:
+                                      Text(ingredient.create_time.toString()),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(ingredient.name),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(_getCategoryNameById(
+                                      ingredient.id_category_ingredient)),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(ingredient.id_unit_ingredient),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${ingredient.price}đ'),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(ingredient.number.toString()),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                      '${ingredient.price * ingredient.number}đ'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                );
+              }).toList(),
             ),
           ),
-          DataColumn(
-            label: Text(
-              'Tên',
-              style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCategory_IngredientTable() {
+    List<Category_Ingredient> filteredCategories = _filteredCategories();
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Column(
+        children: [
+          // Header row
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            elevation: 3,
+            child: Container(
+              color: const Color.fromARGB(255, 207, 205, 205),
+              child: const Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('STT'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Tên danh mục'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Ngày tạo'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          DataColumn(
-            label: Text(
-              'Đơn vị',
-              style: TextStyle(fontWeight: FontWeight.bold),
+          // Scrollable rows
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: filteredCategories.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Category_Ingredient categoryIngredient = entry.value;
+                  return Column(
+                    children: [
+                      Card(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                          elevation: 3,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => _openEditCategory_IngredientDialog(
+                                context, categoryIngredient),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text('${index + 1}'),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(categoryIngredient.name),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(categoryIngredient.create_time
+                                        .toString()),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-          DataColumn(
-            label: Text(
-              'Số lượng',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              'Giá',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          DataColumn(
-            label: Text('Tổng giá  ',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Ghi chú  ',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          DataColumn(
-            label: Text('Thao tác  ',
-                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
-        rows: List<DataRow>.generate(ingredidents.length, (index) {
-          var ingredient = ingredidents[index];
-
-          // Parse number and price fields
-          double? unitPrice = double.tryParse(
-            ingredient['price']?.replaceAll('đ', '').replaceAll(',', '') ??
-                '0.0',
-          );
-
-          int? number = int.tryParse(ingredient['number'] ?? '0');
-
-          // Calculate total price as integer
-          int totalPrice = (unitPrice ?? 0.0).toInt() * (number ?? 0);
-          String totalPriceString = '$totalPrice.000đ'; // Append .000đ
-
-          return DataRow(
-            cells: [
-              DataCell(Text(ingredient['id'] ?? '')),
-              DataCell(
-                Text(
-                  _getCategoryNameById(
-                      ingredient['category_ingredidents_Id'] ?? ''),
-                ),
-              ),
-              DataCell(Text(ingredient['name'] ?? '')),
-              DataCell(Text(ingredient['unit'] ?? '')),
-              DataCell(Text(ingredient['number'] ?? '')),
-              DataCell(Text(ingredient['price'] ?? '')),
-              DataCell(Text(totalPriceString)),
-              DataCell(Text(ingredient['description'] ?? '')),
-              // DataCell(
-              //   Text(
-              //     _getCategoryNameById(product['categoryId'] ?? ''),
-              //   ),
-              // ),
-              DataCell(Container(
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                      child: roundedElevatedButton(
-                          onPressed: () {
-                            _showOptionsDialog(
-                                ingredient); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                          },
-                          text: "Sửa",
-                          backgroundColor: Colors.yellow),
-                    ),
-                    // Container(
-                    //   padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),
-                    //   child: roundedElevatedButton(
-                    //       onPressed: () {
-                    //         _showOptionsDialog(
-                    //             ingredient); // Hiển thị dialog tùy chọn khi nhấn vào DataRow
-                    //       },
-                    //       text: "Xóa",
-                    //       backgroundColor: Colors.red),
-                    // ),
-                  ],
-                ),
-              )),
-            ],
-          );
-        }),
       ),
+    );
+  }
+
+  void _openEditIngredientDialog(
+      BuildContext context, Ingredient ingredient) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditIngredientPage(
+          ingredient: ingredient,
+          onUpdateIngredient: _updateIngredientInList,
+          onDeleteIngredient: _deleteIngredientFromList, // Pass the callback
+        );
+      },
+    );
+  }
+
+  void _openEditCategory_IngredientDialog(
+      BuildContext context, Category_Ingredient cateroryIngredient) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditCategory_Ingredient(
+          category_ingredient: cateroryIngredient,
+          onUpdateCategory_Ingredient: _updateCategory_IngredientInList,
+          onDeleteCategory_Ingredient:
+              _deleteCategory_IngredientFromList, // Pass the callback
+        );
+      },
     );
   }
 }

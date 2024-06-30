@@ -1,13 +1,7 @@
 import 'dart:typed_data';
-
 import 'package:cake_coffee/firebase_options.dart';
-import 'package:cake_coffee/models/khanh/add_products.dart';
-import 'package:cake_coffee/views/khanh/khanh.dart';
-import 'package:cake_coffee/views/khanh/management_account_screen.dart';
-import 'package:cake_coffee/views/khanh/management_ingredient_screen.dart';
-import 'package:cake_coffee/views/khanh/management_product.dart';
-import 'package:cake_coffee/views/khanh/management_screen.dart';
-import 'package:cake_coffee/views/khanh/management_table.dart';
+import 'package:cake_coffee/views/khanh/login.dart';
+import 'package:cake_coffee/views/oder_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -31,8 +25,12 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: "/management",
-      routes: {"/management": (context) => const Management_Screen()},
+      initialRoute: "/employeeHomePage",
+      routes: {
+        // "/management": (context) => const Management_Screen(),
+        "/login": (context) => const LoginScreen(),
+        "/employeeHomePage": (context) => const OrderScreenDesktop(),
+      },
     );
   }
 }

@@ -5,7 +5,8 @@ import 'package:cake_coffee/views/khanh/management_product.dart';
 import 'package:cake_coffee/views/khanh/management_table.dart';
 
 class Management_Screen extends StatefulWidget {
-  const Management_Screen({super.key});
+  final String adminName;
+  const Management_Screen({super.key, required this.adminName});
 
   @override
   State<Management_Screen> createState() => _Management_ScreenState();
@@ -18,9 +19,9 @@ class _Management_ScreenState extends State<Management_Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Name Admin: Phạm Duy Khánh",
-          style: TextStyle(
+        title: Text(
+          "Quản lý: ${widget.adminName}",
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 15,
             fontWeight: FontWeight.bold,

@@ -1,26 +1,28 @@
-import 'package:cake_coffee/models/khanh/category_product.dart';
+import 'package:cake_coffee/models/khanh/roles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class Add_Category_Product extends StatefulWidget {
-  final Function(Category) onAddCategory; // Callback để cập nhật bảng DataTable
-  final VoidCallback onCancel; // Defi
-  const Add_Category_Product(
-      {super.key, required this.onAddCategory, required this.onCancel});
+class AddRolePage extends StatefulWidget {
+  final Function(Roles) onAddRole;
+  final VoidCallback onCancel;
+
+  const AddRolePage(
+      {super.key, required this.onAddRole, required this.onCancel});
 
   @override
-  State<Add_Category_Product> createState() => _Add_Category_ProductState();
-  static Future<void> openAdd_Category_ProductDialog(
+  State<AddRolePage> createState() => _AddRolePageState();
+
+  static Future<void> openAddRoleDialog(
     BuildContext context,
-    Function(Category) onAddCategory,
+    Function(Roles) onAddRole,
   ) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Thêm danh mục'),
-          content: Add_Category_Product(
-            onAddCategory: onAddCategory,
+          title: const Text('Thêm vai trò'),
+          content: AddRolePage(
+            onAddRole: onAddRole,
             onCancel: () {
               Navigator.of(context).pop(); // Implement onCancel action
             },
@@ -31,9 +33,10 @@ class Add_Category_Product extends StatefulWidget {
   }
 }
 
-class _Add_Category_ProductState extends State<Add_Category_Product> {
+class _AddRolePageState extends State<AddRolePage> {
   final TextEditingController _nameController = TextEditingController();
-  bool _isLoading = false; // Biến để xác định trạng thái xử lý
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -44,7 +47,7 @@ class _Add_Category_ProductState extends State<Add_Category_Product> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: const Text('Thông báo'),
-                  content: const Text('Đang thêm danh mục, vui lòng đợi...'),
+                  content: const Text('Đang thêm vai trò, vui lòng đợi...'),
                   actions: <Widget>[
                     TextButton(
                       onPressed: () {
@@ -70,76 +73,70 @@ class _Add_Category_ProductState extends State<Add_Category_Product> {
                 TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Tên danh mục',
+                    labelText: 'Tên vai trò',
                     border: OutlineInputBorder(),
                   ),
                   enabled: !_isLoading,
                 ),
                 const SizedBox(height: 16.0),
-                // ElevatedButton(
-                //   onPressed: _isLoading ? null : _addProduct,
-                //   child: _isLoading
-                //       ? const CircularProgressIndicator()
-                //       : const Text('Thêm sản phẩm'),
-                // ),
-                // const SizedBox(height: 16.0),
-                // ElevatedButton(
-                //   onPressed: _isLoading ? null : widget.onCancel,
-                //   child: const Text('Hủy'),
-                // ),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _addCategory,
+                  onPressed: _isLoading ? null : _addRole,
                   child: _isLoading
                       ? const CircularProgressIndicator()
-                      : const Text('Thêm danh mục'),
+                      : const Text('Thêm vai trò'),
                 ),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                    onPressed: _isLoading ? null : widget.onCancel,
-                    child: const Text('Hủy'))
+                  onPressed: _isLoading ? null : widget.onCancel,
+                  child: const Text('Hủy'),
+                ),
               ],
             ),
           ),
         ));
   }
 
-  Future<void> _addCategory() async {
+  Future<void> _addRole() async {
     if (_isLoading || !mounted) return;
+
     String name = _nameController.text.trim();
     if (name.isNotEmpty) {
-      Category newCategory = Category(
-        id: FirebaseFirestore.instance.collection('categories').doc().id,
+      Roles newRole = Roles(
+        id: FirebaseFirestore.instance.collection('roles').doc().id,
         name: name,
-        createTime: DateTime.now(),
-        updateTime: null,
-        deleteTime: null,
+        create_time: DateTime.now(),
+        update_time: null,
+        delete_time: null,
       );
+
       setState(() {
         _isLoading = true;
       });
 
       try {
         await FirebaseFirestore.instance
-            .collection('categories')
-            .doc(newCategory.id)
-            .set(newCategory.toMap());
-        widget.onAddCategory(newCategory);
+            .collection('roles')
+            .doc(newRole.id)
+            .set(newRole.toMap());
+
+        widget.onAddRole(newRole);
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đã thêm danh mục sản phẩm thành công!'),
+            content: Text('Đã thêm vai trò thành công!'),
           ),
         );
+
         setState(() {
           _isLoading = false;
         });
-        // Navigator.of(context)
-        //     .pop(); // Close the dialog after adding the category
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lỗi: $error'),
           ),
         );
+
         setState(() {
           _isLoading = false;
         });
@@ -147,7 +144,7 @@ class _Add_Category_ProductState extends State<Add_Category_Product> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui lòng nhập tên danh mục sản phẩm.'),
+          content: Text('Vui lòng nhập tên vai trò.'),
         ),
       );
     }

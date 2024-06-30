@@ -7,9 +7,9 @@ class Product {
   double price;
   String id_unit_product;
   String image;
-  DateTime? createTime;
-  DateTime? updateTime;
-  DateTime? deleteTime;
+  DateTime? create_time;
+  DateTime? update_time;
+  DateTime? delete_time;
   //9
 
   Product({
@@ -19,41 +19,45 @@ class Product {
     required this.price,
     required this.id_unit_product,
     required this.image,
-    required this.createTime,
-    required this.updateTime,
-    required this.deleteTime,
+    required this.create_time,
+    required this.update_time,
+    required this.delete_time,
   });
 
-  //Factory constructor to create a Product instance from a Firestore document
-  // factory Product.fromFirestore(DocumentSnapshot doc) {
-  //   Map data = doc.data() as Map;
-  //   return Product(
-  //     id: doc.id,
-  //     id_catehory_product: data['id_category_product'] ?? '',
-  //     name: data['name'] ?? '',
-  //     price: (data['price'] ?? 0.0).toDouble(),
-  //     id_unit_product: data['id_unit_product'] ?? '',
-  //     image: data['image'] ?? '',
-  //     createTime: (data['createTime'] ?? DateTime.now())?.toDate(),
-  //     updateTime: (data['updateTime'] ?? DateTime.now())?.toDate(),
-  //     deleteTime: (data['deleteTime'] ?? DateTime.now())?.toDate(),
-  //   );
-  // }
   factory Product.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return Product(
       id: doc.id,
       id_category_product: data['id_category_product'] ?? '',
       name: data['name'] ?? '',
-      price: data['price'] ?? 0,
+      price: (data['price'] as num).toDouble(),
       id_unit_product: data['id_unit_product'] ?? '',
       image: data['image'] ?? '',
-      createTime: (data['createTime'] as Timestamp).toDate(),
-      updateTime: data['updateTime'] != null
-          ? (data['updateTime'] as Timestamp).toDate()
+      create_time: (data['create_time'] as Timestamp).toDate(),
+      update_time: data['update_time'] != null
+          ? (data['update_time'] as Timestamp).toDate()
           : null,
-      deleteTime: data['deleteTime'] != null
-          ? (data['deleteTime'] as Timestamp).toDate()
+      delete_time: data['delete_time'] != null
+          ? (data['delete_time'] as Timestamp).toDate()
+          : null,
+    );
+  }
+  factory Product.fromMap(Map<String, dynamic> data) {
+    return Product(
+      id: data['id'] ?? '',
+      id_category_product: data['id_category_product'] ?? '',
+      name: data['name'] ?? '',
+      price: (data['price'] as num).toDouble(),
+      id_unit_product: data['id_unit_product'] ?? '',
+      image: data['image'] ?? '',
+      create_time: data['create_time'] != null
+          ? (data['create_time'] as Timestamp).toDate()
+          : null,
+      update_time: data['update_time'] != null
+          ? (data['update_time'] as Timestamp).toDate()
+          : null,
+      delete_time: data['delete_time'] != null
+          ? (data['delete_time'] as Timestamp).toDate()
           : null,
     );
   }
@@ -66,9 +70,9 @@ class Product {
       'price': price,
       'id_unit_product': id_unit_product,
       'image': image,
-      'createTime': createTime,
-      'updateTime': updateTime,
-      'deleteTime': deleteTime,
+      'create_time': create_time,
+      'update_time': update_time,
+      'delete_time': delete_time,
     };
   }
 }

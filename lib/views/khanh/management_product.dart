@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cake_coffee/models/khanh/add_products.dart';
+import 'package:cake_coffee/presents/khanh/add_products.dart';
 import 'package:cake_coffee/models/khanh/category_product.dart';
-import 'package:cake_coffee/models/khanh/edit_products.dart';
+import 'package:cake_coffee/presents/khanh/edit_category_product.dart';
+import 'package:cake_coffee/presents/khanh/edit_products.dart';
 import 'package:cake_coffee/models/khanh/products.dart';
 import 'package:cake_coffee/presents/khanh/add_category_product.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
@@ -18,8 +17,13 @@ class Management_Product extends StatefulWidget {
 
 class _Management_ProductState extends State<Management_Product>
     with SingleTickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  final TextEditingController _searchProductController =
+      TextEditingController();
+  final TextEditingController _searchCategoryController =
+      TextEditingController();
+  String _searchProductQuery = '';
+  String _searchCategoryQuery = '';
+  // String _searchQuery = '';
   String _selectedCategoryId = '';
   late TabController _tabController;
   List<Category> categories = [];
@@ -28,6 +32,12 @@ class _Management_ProductState extends State<Management_Product>
   void _onAddProduct(Product newProduct) {
     setState(() {
       products.add(newProduct);
+    });
+  }
+
+  void _onAddCategory(Category newCategory) {
+    setState(() {
+      categories.add(newCategory);
     });
   }
 
@@ -47,13 +57,44 @@ class _Management_ProductState extends State<Management_Product>
     });
   }
 
+  void _deleteCategoryFromList(String categoryId) {
+    setState(() {
+      categories.removeWhere((category) => category.id == categoryId);
+    });
+  }
+
+  void _updateCategoryInList(Category updatedCategory) {
+    setState(() {
+      int index = categories
+          .indexWhere((category) => category.id == updatedCategory.id);
+      if (index != -1) {
+        categories[index] = updatedCategory;
+      }
+    });
+  }
+
+  List<Category> _filteredCategories() {
+    List<Category> filtered = categories;
+
+    if (_searchCategoryQuery.isNotEmpty) {
+      filtered = filtered
+          .where((category) => category.name
+              .toLowerCase()
+              .contains(_searchCategoryQuery.toLowerCase()))
+          .toList();
+    }
+
+    return filtered;
+  }
+
   List<Product> _filteredProducts() {
     List<Product> filtered = products;
 
-    if (_searchQuery.isNotEmpty) {
+    if (_searchProductQuery.isNotEmpty) {
       filtered = filtered
-          .where((product) =>
-              product.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .where((product) => product.name
+              .toLowerCase()
+              .contains(_searchProductQuery.toLowerCase()))
           .toList();
     }
 
@@ -67,22 +108,20 @@ class _Management_ProductState extends State<Management_Product>
     return filtered;
   }
 
-  // List<Product> _filteredProducts() {
-  //   if (_selectedCategoryId.isNotEmpty) {
-  //     return products;
-  //   }
-
-  //   return products.where((product)=>product.id_category_product==_selectedCategoryId).toList();
-  // }
-
   @override
   void initState() {
     //Cập nhật trạng thái của _searchQuery khi người dùng nhập liệu:
 
     super.initState();
-    _searchController.addListener(() {
+    _searchProductController.addListener(() {
       setState(() {
-        _searchQuery = _searchController.text;
+        _searchProductQuery = _searchProductController.text;
+      });
+    });
+
+    _searchCategoryController.addListener(() {
+      setState(() {
+        _searchCategoryQuery = _searchCategoryController.text;
       });
     });
     _tabController = TabController(length: 2, vsync: this);
@@ -131,6 +170,7 @@ class _Management_ProductState extends State<Management_Product>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
+            //  width: MediaQuery.of(context).size.width * 0.3,
             color: Colors.grey[200],
             child: TabBar(
               controller: _tabController,
@@ -157,23 +197,117 @@ class _Management_ProductState extends State<Management_Product>
   }
 
   Widget _buildProductTab() {
-    return SingleChildScrollView(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Thông tin sản phẩm',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
+              Container(
+                child: roundedElevatedButton(
+                  onPressed: () {
+                    AddProductPage.openAddProductDialog(context, _onAddProduct);
+                  },
+                  text: "Thêm",
+                  backgroundColor: Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.15,
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategoryId.isEmpty ? '' : _selectedCategoryId,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCategoryId = newValue ?? '';
+                    });
+                  },
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text('Tất cả'),
+                    ),
+                    ...categories.map((category) {
+                      return DropdownMenuItem(
+                        value: category.id,
+                        child: Text(category.name),
+                      );
+                    }),
+                  ],
+                  decoration: const InputDecoration(
+                    labelText: 'Danh mục',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.2,
+                child: TextFormField(
+                  controller: _searchProductController,
+                  style: const TextStyle(fontSize: 15),
+                  decoration: const InputDecoration(
+                    labelText: 'Tìm kiếm sản phẩm',
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  _searchProductController.clear();
+                },
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: _buildProductTable(),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildCategoryTab() {
+    return SizedBox(
+      width: 500,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Đảm bảo căn lề bắt đầu từ đầu dòng
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
+          Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            padding: const EdgeInsets.all(8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Thông tin sản phẩm',
+                  'Thông tin danh mục',
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 Container(
                   child: roundedElevatedButton(
                     onPressed: () {
-                      AddProductPage.openAddProductDialog(
-                          context, _onAddProduct);
+                      Add_Category_Product.openAdd_Category_ProductDialog(
+                          context, _onAddCategory);
                     },
                     text: "Thêm",
                     backgroundColor: Colors.green,
@@ -187,41 +321,12 @@ class _Management_ProductState extends State<Management_Product>
             child: Row(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  child: DropdownButtonFormField<String>(
-                    value:
-                        _selectedCategoryId.isEmpty ? '' : _selectedCategoryId,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedCategoryId = newValue ?? '';
-                      });
-                    },
-                    items: [
-                      const DropdownMenuItem(
-                        value: '',
-                        child: Text('Tất cả'),
-                      ),
-                      ...categories.map((category) {
-                        return DropdownMenuItem(
-                          value: category.id,
-                          child: Text(category.name),
-                        );
-                      }),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Danh mục',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
                   width: MediaQuery.of(context).size.width * 0.2,
                   child: TextFormField(
-                    controller: _searchController,
+                    controller: _searchCategoryController,
                     style: const TextStyle(fontSize: 15),
                     decoration: const InputDecoration(
-                      labelText: 'Tìm kiếm sản phẩm',
+                      labelText: 'Tìm kiếm danh mục',
                       contentPadding:
                           EdgeInsets.symmetric(vertical: 5, horizontal: 15),
                       border: OutlineInputBorder(),
@@ -232,48 +337,19 @@ class _Management_ProductState extends State<Management_Product>
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.red),
                   onPressed: () {
-                    _searchController.clear();
+                    _searchCategoryController.clear();
                   },
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: _buildProductTable(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryTab() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Thông tin danh mục',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                Container(
-                  child: roundedElevatedButton(
-                      onPressed: () {
-                        Add_Category_Product.openAddProductDialog(context);
-                      },
-                      text: "Thêm",
-                      backgroundColor: Colors.green),
-                )
-              ],
+          Expanded(
+            child: SizedBox(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: _buildCategoryTable(), // Đặt _buildCategoryTable() ở đây
+              ),
             ),
-          ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: _buildCategoryTable(),
           ),
         ],
       ),
@@ -281,80 +357,234 @@ class _Management_ProductState extends State<Management_Product>
   }
 
   Widget _buildCategoryTable() {
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('Mã danh mục')),
-        DataColumn(label: Text('Tên danh mục')),
-        //  DataColumn(label: Text('Mô tả')),
-        DataColumn(label: Text('Thao tác')),
-      ],
-      rows: categories.map((category) {
-        return DataRow(
-          cells: [
-            DataCell(Text(category.id)),
-            DataCell(Text(category.name)),
-            // DataCell(Text(category.description)), // Ensure Category class has description property
-            const DataCell(
-              Row(
-                children: [],
+    List<Category> filteredCategories = _filteredCategories();
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Column(
+        children: [
+          // Header row
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+            elevation: 3,
+            child: Container(
+              color: const Color.fromARGB(255, 207, 205, 205),
+              child: const Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    // width: 100,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('STT'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Tên danh mục'),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        );
-      }).toList(),
+          ),
+          // Scrollable rows
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: filteredCategories.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Category category = entry.value;
+                  return Column(
+                    children: [
+                      Card(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                          elevation: 3,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () =>
+                                _openEditCategoryDialog(context, category),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text('${index + 1}'),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(category.name),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ))
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildProductTable() {
     List<Product> filteredProducts = _filteredProducts();
-    return SingleChildScrollView(
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-        elevation: 3,
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('Tên sản phẩm')),
-            DataColumn(label: Text('Danh mục')),
-            DataColumn(label: Text('Đơn vị tính')),
-            DataColumn(label: Text('Giá')),
-            DataColumn(label: Text('Hình ảnh')),
-            DataColumn(label: Text('Thao tác')),
-          ],
-          rows: filteredProducts.map((product) {
-            return DataRow(
-              cells: [
-                DataCell(Text(product.name)),
-                DataCell(
-                    Text(_getCategoryNameById(product.id_category_product))),
-                DataCell(Text(product.id_unit_product)),
-                DataCell(Text('${product.price}.000đ')),
-                DataCell(
-                  product.image.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: product.image,
-                          placeholder: (context, url) =>
-                              const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
-                          width: 30,
-                          height: 30,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(Icons.error),
-                ),
-                DataCell(
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      _openEditProductDialog(context, product);
-                    },
+    return Column(
+      children: [
+        // Header row
+        Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+          elevation: 3,
+          child: Container(
+            color: const Color.fromARGB(255, 207, 205, 205),
+            margin: const EdgeInsets.all(0),
+            child: const Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('STT'),
                   ),
-                )
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Tên sản phẩm'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Danh mục'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Đơn vị tính'),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Giá'),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Hình ảnh'),
+                  ),
+                ),
               ],
-            );
-          }).toList(),
+            ),
+          ),
         ),
-      ),
+        // Scrollable rows
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: filteredProducts.asMap().entries.map((entry) {
+                int index = entry.key;
+                Product product = entry.value;
+                return Column(
+                  children: [
+                    Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)),
+                        elevation: 3,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => _openEditProductDialog(context, product),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${index + 1}'),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(product.name),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(_getCategoryNameById(
+                                      product.id_category_product)),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(product.id_unit_product),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${product.price}đ'),
+                                ),
+                              ),
+                              Expanded(
+                                  flex: 1,
+                                  child: Row(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: product.image.isNotEmpty
+                                            ? CachedNetworkImage(
+                                                imageUrl: product.image,
+                                                placeholder: (context, url) =>
+                                                    const CircularProgressIndicator(),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error),
+                                                width: 30,
+                                                height: 30,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : const Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Icon(Icons.error),
+                                              ),
+                                      ),
+                                    ],
+                                  )),
+                            ],
+                          ),
+                        )),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -370,26 +600,17 @@ class _Management_ProductState extends State<Management_Product>
       },
     );
   }
+
+  void _openEditCategoryDialog(BuildContext context, Category caterory) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return EditCategory(
+          category: caterory,
+          onUpdateCategory: _updateCategoryInList,
+          onDeleteCategory: _deleteCategoryFromList, // Pass the callback
+        );
+      },
+    );
+  }
 }
-
-
-// Widget builImageProduct(Uint8List? image) {
-//   if (image != null) {
-//     return CircleAvatar(
-//       radius: 50,
-//       backgroundColor: Colors.transparent,
-//       backgroundImage: MemoryImage(image),
-//     );
-//   } else {
-//     return const CircleAvatar(
-//       radius: 50,
-//       backgroundColor: Colors.transparent,
-//       backgroundImage: AssetImage('assets/png.png'),
-//     );
-//   }
-// }
-
-// Uint8List? decodeBase64Image(String? base64String) {
-//   if (base64String == null || base64String.isEmpty) return null;
-//   return Uint8List.fromList(base64.decode(base64String));
-// }
