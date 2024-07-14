@@ -76,17 +76,6 @@ class _Add_Category_ProductState extends State<Add_Category_Product> {
                   enabled: !_isLoading,
                 ),
                 const SizedBox(height: 16.0),
-                // ElevatedButton(
-                //   onPressed: _isLoading ? null : _addProduct,
-                //   child: _isLoading
-                //       ? const CircularProgressIndicator()
-                //       : const Text('Thêm sản phẩm'),
-                // ),
-                // const SizedBox(height: 16.0),
-                // ElevatedButton(
-                //   onPressed: _isLoading ? null : widget.onCancel,
-                //   child: const Text('Hủy'),
-                // ),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _addCategory,
                   child: _isLoading
@@ -107,6 +96,32 @@ class _Add_Category_ProductState extends State<Add_Category_Product> {
     if (_isLoading || !mounted) return;
     String name = _nameController.text.trim();
     if (name.isNotEmpty) {
+      QuerySnapshot existingTableSnapshot = await FirebaseFirestore.instance
+          .collection('categories')
+          .where('name', isEqualTo: name)
+          .get();
+      if (existingTableSnapshot.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Danh mục đã tồn tại, vui lòng chọn danh mục khác.'),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      if (name.length > 10) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chiều dài tối đa là 10 ký tự!.'),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
       Category newCategory = Category(
         id: FirebaseFirestore.instance.collection('categories').doc().id,
         name: name,

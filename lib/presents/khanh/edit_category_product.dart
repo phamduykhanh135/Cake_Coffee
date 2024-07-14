@@ -73,22 +73,51 @@ class _EditCategoryPageState extends State<EditCategory> {
 
     String name = _nameController.text.trim();
 
-    //bool isCategoryInUse = await _checkCategoryInUse(categoryId);
-
-    if (_isCategoryInUse) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Không thể sửa danh mục vì có sản phẩm đang sử dụng danh mục này.'),
-        ),
-      );
-      setState(() {
-        _isEditing = false;
-      });
-      return;
-    }
-
     try {
+      // Kiểm tra xem tên sản phẩm mới đã tồn tại chưa
+      if (name != widget.category.name) {
+        QuerySnapshot existingProductSnapshot = await FirebaseFirestore.instance
+            .collection('categories')
+            .where('name', isEqualTo: name)
+            .get();
+
+        if (existingProductSnapshot.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tên danh mục đã tồn tại, vui lòng chọn tên khác.'),
+            ),
+          );
+          setState(() {
+            _isEditing = false;
+          });
+          return;
+        }
+      }
+      if (name.length > 15) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chiều dài tối đa là 15 ký tự!.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+
+      if (_isCategoryInUse) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Không thể sửa danh mục vì có sản phẩm đang sử dụng danh mục này.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+
       Map<String, dynamic> updatedData = {
         'name': name,
       };

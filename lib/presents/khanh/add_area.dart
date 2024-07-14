@@ -59,9 +59,10 @@ class _Add_Area extends State<Add_Area> {
           }
           return true;
         },
-        child: Scaffold(
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
+        child: Container(
+            child: SingleChildScrollView(
+          child: SizedBox(
+            width: 300, // Set the width of the dialog
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -88,13 +89,41 @@ class _Add_Area extends State<Add_Area> {
               ],
             ),
           ),
-        ));
+        )));
   }
 
   Future<void> _addArea() async {
     if (_isLoading || !mounted) return;
     String name = _nameController.text.trim();
+
     if (name.isNotEmpty) {
+      QuerySnapshot existingTableSnapshot = await FirebaseFirestore.instance
+          .collection('areas')
+          .where('name', isEqualTo: name)
+          .get();
+      if (existingTableSnapshot.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Khu vực đã tồn tại, vui lòng chọn khuc vực khác.'),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      if (name.length > 15) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chiều dài tối đa là 15 ký tự!.'),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
       Area newArea = Area(
         id: FirebaseFirestore.instance.collection('areas').doc().id,
         name: name,
@@ -120,8 +149,8 @@ class _Add_Area extends State<Add_Area> {
         setState(() {
           _isLoading = false;
         });
-        // Navigator.of(context)
-        //     .pop(); // Close the dialog after adding the category
+        Navigator.of(context)
+            .pop(); // Close the dialog after adding the category
       } catch (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -1,8 +1,8 @@
-import 'dart:typed_data';
 import 'package:cake_coffee/models/khanh/area.dart';
 import 'package:cake_coffee/models/khanh/table.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 class EditTablePage extends StatefulWidget {
   final Tables table;
@@ -40,6 +40,7 @@ class EditTablePage extends StatefulWidget {
 
 class _EditTablePage extends State<EditTablePage> {
   late TextEditingController _nameController;
+  late TextEditingController _idController;
   String _selectedAreaId = '';
   bool _isEditing = false;
   List<Area> areas = [];
@@ -48,6 +49,7 @@ class _EditTablePage extends State<EditTablePage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.table.name);
+    _idController = TextEditingController(text: widget.table.id);
     _selectedAreaId = widget.table.id_area ?? '';
     loadAreas();
   }
@@ -55,6 +57,7 @@ class _EditTablePage extends State<EditTablePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _idController.dispose();
     super.dispose();
   }
 
@@ -76,6 +79,36 @@ class _EditTablePage extends State<EditTablePage> {
 
     String name = _nameController.text.trim();
 
+    // Kiểm tra tên bàn đã tồn tại hay chưa
+    QuerySnapshot existingTableSnapshot = await FirebaseFirestore.instance
+        .collection('tables')
+        .where('name', isEqualTo: name)
+        .get();
+
+    if (existingTableSnapshot.docs.isNotEmpty &&
+        existingTableSnapshot.docs.first.id != tableId) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tên bàn đã tồn tại, vui lòng chọn tên khác.'),
+        ),
+      );
+      setState(() {
+        _isEditing = false;
+      });
+      return;
+    }
+    if (name.length > 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Chiều dài tối đa là 3 số!.'),
+        ),
+      );
+      setState(() {
+        _isEditing = false;
+      });
+      return;
+    }
+
     try {
       Map<String, dynamic> updatedData = {
         'name': name,
@@ -89,14 +122,13 @@ class _EditTablePage extends State<EditTablePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thàn công!'),
+          content: Text('Cập nhật thành công!'),
         ),
       );
 
       setState(() {
         _isEditing = false;
         widget.table.name = name;
-
         widget.table.id_area = _selectedAreaId;
       });
 
@@ -107,7 +139,6 @@ class _EditTablePage extends State<EditTablePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Cập nhật thất bại!'),
-          //'Cập nhật thất bại: $error'
         ),
       );
       setState(() {
@@ -198,13 +229,34 @@ class _EditTablePage extends State<EditTablePage> {
                 const SizedBox(height: 16.0),
                 TextField(
                   controller: _nameController,
-                  enabled: !_isEditing, //#true là false
+                  enabled: !_isEditing,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'[0-9]')), // Chỉ cho phép nhập số
+                  ],
                   decoration: const InputDecoration(
-                    labelText: 'Tên bàn',
+                    labelText: 'Tên bàn (chỉ nhập số)',
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16.0),
+                const Text(
+                  'Đường dẫn tạo QR bàn :',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8.0),
+                TextField(
+                  readOnly: true,
+                  controller: TextEditingController(
+                    text:
+                        'https://datn-628de.web.app/menu?id_tables=${_idController.text}',
+                  ),
+                  maxLines:
+                      null, // Cho phép TextField tự động điều chỉnh kích thước chiều cao
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ],
             ),
           ),

@@ -71,48 +71,85 @@ class _EditAreaPage extends State<EditAreaPage> {
     });
 
     String name = _nameController.text.trim();
-
-    if (_isAreaInUse) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('Không thể sửa khu vực vì có bàn đang sử dụng khu vực này.'),
-        ),
-      );
-      setState(() {
-        _isEditing = false;
-      });
-      return;
-    }
-
-    try {
-      Map<String, dynamic> updatedData = {
-        'name': name,
-      };
-
-      await FirebaseFirestore.instance
+    if (name.isNotEmpty) {
+      QuerySnapshot existingTableSnapshot = await FirebaseFirestore.instance
           .collection('areas')
-          .doc(areaId)
-          .update(updatedData);
+          .where('name', isEqualTo: name)
+          .get();
+      if (existingTableSnapshot.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Khu vực đã tồn tại, vui lòng chọn khuc vực khác.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+      if (name.length > 15) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chiều dài tối đa là 15 ký tự!.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
 
+      if (_isAreaInUse) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Không thể sửa khu vực vì có bàn đang sử dụng khu vực này.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+
+      try {
+        Map<String, dynamic> updatedData = {
+          'name': name,
+        };
+
+        await FirebaseFirestore.instance
+            .collection('areas')
+            .doc(areaId)
+            .update(updatedData);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thành công!'),
+          ),
+        );
+
+        setState(() {
+          _isEditing = false;
+          widget.area.name = name;
+        });
+
+        widget.onUpdateArea(widget.area);
+
+        Navigator.of(context).pop();
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cập nhật thất bại: $error'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thành công!'),
-        ),
-      );
-
-      setState(() {
-        _isEditing = false;
-        widget.area.name = name;
-      });
-
-      widget.onUpdateArea(widget.area);
-
-      Navigator.of(context).pop();
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Cập nhật thất bại: $error'),
+          content: Text('Vui lòng nhập tên khu vực.'),
         ),
       );
       setState(() {
@@ -121,7 +158,7 @@ class _EditAreaPage extends State<EditAreaPage> {
     }
   }
 
-  void _deleteArea(String areaId) async {
+  void deleteArea(String areaId) async {
     if (_isAreaInUse) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -214,7 +251,7 @@ class _EditAreaPage extends State<EditAreaPage> {
                   : const Text('Lưu'),
             ),
             ElevatedButton(
-              onPressed: _isEditing ? null : () => _deleteArea(widget.area.id),
+              onPressed: _isEditing ? null : () => deleteArea(widget.area.id),
               style: ElevatedButton.styleFrom(
                 iconColor: Colors.red,
               ),

@@ -205,7 +205,7 @@ class _Management_TableState extends State<Management_Table>
                     AddTablePage.openAddTableDialog(context, _onAddTable);
                   },
                   text: "Thêm",
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade400,
                 ),
               ),
             ],
@@ -299,7 +299,7 @@ class _Management_TableState extends State<Management_Table>
                       Add_Area.openAdd_Area(context, _onAddArea);
                     },
                     text: "Thêm",
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.green.shade400,
                   ),
                 ),
               ],
@@ -380,44 +380,49 @@ class _Management_TableState extends State<Management_Table>
           ),
           // Scrollable rows
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: filteredCAreas.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  Area area = entry.value;
-                  return Column(
-                    children: [
-                      Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          elevation: 3,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () => _openEditAreaDialog(context, area),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text('${index + 1}'),
+            child: filteredCAreas.isEmpty
+                ? const Center(
+                    child: Text('Không có khu vực nào được tìm thấy!'),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: filteredCAreas.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        Area area = entry.value;
+                        return Column(
+                          children: [
+                            Card(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                elevation: 3,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () =>
+                                      _openEditAreaDialog(context, area),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('${index + 1}'),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(area.name),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(area.name),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ))
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+                                ))
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -426,6 +431,11 @@ class _Management_TableState extends State<Management_Table>
 
   Widget _buildTableTable() {
     List<Tables> filteredTables = _filteredTables();
+
+    // Sort tables by name in ascending order
+    filteredTables
+        .sort((a, b) => int.parse(a.name).compareTo(int.parse(b.name)));
+
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.5,
       child: Column(
@@ -441,7 +451,6 @@ class _Management_TableState extends State<Management_Table>
               child: const Row(
                 children: [
                   Expanded(
-                    //width: 50,
                     flex: 1,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
@@ -456,10 +465,17 @@ class _Management_TableState extends State<Management_Table>
                     ),
                   ),
                   Expanded(
-                    flex: 3,
+                    flex: 2,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
                       child: Text('Tên bàn'),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                      child: Text('Trạng thái'),
                     ),
                   ),
                 ],
@@ -468,52 +484,65 @@ class _Management_TableState extends State<Management_Table>
           ),
           // Scrollable rows
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: filteredTables.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  Tables table = entry.value;
-                  return Column(
-                    children: [
-                      Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                        elevation: 3,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () => _openEditTableDialog(context, table),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${index + 1}'),
+            child: filteredTables.isEmpty
+                ? const Center(
+                    child: Text('Không có bàn nào được tìm thấy'),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: filteredTables.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        Tables table = entry.value;
+                        return Column(
+                          children: [
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5)),
+                              elevation: 3,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () =>
+                                    _openEditTableDialog(context, table),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text('${index + 1}'),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                            _getAreaNameById(table.id_area)),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(table.name),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(table.status),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(_getAreaNameById(table.id_area)),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(table.name),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
           ),
         ],
       ),

@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cake_coffee/models/khanh/category_ingredient.dart';
 import 'package:cake_coffee/models/khanh/ingredient.dart';
 import 'package:cake_coffee/presents/khanh/add_category_ingredient.dart';
@@ -7,6 +6,7 @@ import 'package:cake_coffee/presents/khanh/edit_category_ingredient.dart';
 import 'package:cake_coffee/presents/khanh/edit_ingredient.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Management_Ingredient_Screen extends StatefulWidget {
   const Management_Ingredient_Screen({super.key});
@@ -164,6 +164,11 @@ class _Management_Ingredient_ScreenState
     return category.name;
   }
 
+  String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,7 +220,7 @@ class _Management_Ingredient_ScreenState
                         context, _onAddIngredient);
                   },
                   text: "Thêm",
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade400,
                 ),
               ),
             ],
@@ -311,7 +316,7 @@ class _Management_Ingredient_ScreenState
                           context, _onAddCategory);
                     },
                     text: "Thêm",
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.green.shade400,
                   ),
                 ),
               ],
@@ -358,6 +363,194 @@ class _Management_Ingredient_ScreenState
     );
   }
 
+  // Widget _buildIngredientTable() {
+  //   List<Ingredient> filteredIngredients = _filteredIngredients();
+
+  //   return Column(
+  //     children: [
+  //       // Header row
+  //       Card(
+  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+  //         elevation: 3,
+  //         child: Container(
+  //           color: const Color.fromARGB(255, 207, 205, 205),
+  //           margin: const EdgeInsets.all(0),
+  //           child: const Row(
+  //             children: [
+  //               Expanded(
+  //                 flex: 1,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('STT'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Ngày tạo'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 3,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Tên nguyên liệu'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Danh mục'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Đơn vị tính'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Giá'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Số lượng'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Tổng giá'),
+  //                 ),
+  //               ),
+  //               Expanded(
+  //                 flex: 2,
+  //                 child: Padding(
+  //                   padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+  //                   child: Text('Hạn sử dụng'),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //       // Scrollable rows
+  //       Expanded(
+  //         child: filteredIngredients.isEmpty
+  //             ? const Center(
+  //                 child: Text('Không có nguyên liệu nào được tìm thấy!'),
+  //               )
+  //             : SingleChildScrollView(
+  //                 child: Column(
+  //                   children: filteredIngredients.asMap().entries.map((entry) {
+  //                     int index = entry.key;
+  //                     Ingredient ingredient = entry.value;
+  //                     return Column(
+  //                       children: [
+  //                         Card(
+  //                             shape: RoundedRectangleBorder(
+  //                                 borderRadius: BorderRadius.circular(5)),
+  //                             elevation: 3,
+  //                             child: InkWell(
+  //                               borderRadius: BorderRadius.circular(8),
+  //                               onTap: () => _openEditIngredientDialog(
+  //                                   context, ingredient),
+  //                               child: Row(
+  //                                 children: [
+  //                                   Expanded(
+  //                                     flex: 1,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text('${index + 1}'),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(
+  //                                         _formatDate(ingredient.create_time),
+  //                                       ),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 3,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(ingredient.name),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(_getCategoryNameById(
+  //                                           ingredient.id_category_ingredient)),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child:
+  //                                           Text(ingredient.id_unit_ingredient),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(FormartPrice(
+  //                                           price: ingredient.price)),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(
+  //                                           '${ingredient.quantity.toInt()}'),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(FormartPrice(
+  //                                           price: ingredient.total)),
+  //                                     ),
+  //                                   ),
+  //                                   Expanded(
+  //                                     flex: 2,
+  //                                     child: Padding(
+  //                                       padding: const EdgeInsets.all(8.0),
+  //                                       child: Text(
+  //                                         _formatDate(ingredient.delete_time),
+  //                                       ),
+  //                                     ),
+  //                                   ),
+  //                                 ],
+  //                               ),
+  //                             )),
+  //                       ],
+  //                     );
+  //                   }).toList(),
+  //                 ),
+  //               ),
+  //       ),
+  //     ],
+  //   );
+  // }
   Widget _buildIngredientTable() {
     List<Ingredient> filteredIngredients = _filteredIngredients();
 
@@ -428,96 +621,155 @@ class _Management_Ingredient_ScreenState
                     child: Text('Tổng giá'),
                   ),
                 ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 15),
+                    child: Text('Hạn sử dụng'),
+                  ),
+                ),
               ],
             ),
           ),
         ),
         // Scrollable rows
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: filteredIngredients.asMap().entries.map((entry) {
-                int index = entry.key;
-                Ingredient ingredient = entry.value;
-                return Column(
-                  children: [
-                    Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                        elevation: 3,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () =>
-                              _openEditIngredientDialog(context, ingredient),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${index + 1}'),
-                                ),
+          child: filteredIngredients.isEmpty
+              ? const Center(
+                  child: Text('Không có nguyên liệu nào được tìm thấy!'),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    children: filteredIngredients.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Ingredient ingredient = entry.value;
+
+                      // Check expiration status
+
+                      Color? cardColor;
+                      if (ingredient.delete_time == null) {
+                        cardColor = null; // Handle null case
+                      } else {
+                        // Lấy ngày hiện tại
+                        DateTime today = DateTime.now();
+
+                        // Chỉ lấy ngày (bỏ qua thời gian)
+                        DateTime currentDate =
+                            DateTime(today.year, today.month, today.day);
+                        DateTime deleteDate = DateTime(
+                          ingredient.delete_time!.year,
+                          ingredient.delete_time!.month,
+                          ingredient.delete_time!.day,
+                        );
+
+                        // So sánh ngày
+                        if (deleteDate.isBefore(currentDate)) {
+                          cardColor = Colors.grey.shade300; // Expired
+                        } else if (deleteDate.isAfter(currentDate)) {
+                          cardColor = null; // Not expired, no specific color
+                        } else {
+                          cardColor =
+                              Colors.red.shade300; // Exact expiration date
+                        }
+                      }
+
+                      return Column(
+                        children: [
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            elevation: 3,
+                            // Set the background color based on expiration
+                            color: cardColor,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => _openEditIngredientDialog(
+                                  context, ingredient),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text('${index + 1}'),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        _formatDate(ingredient.create_time),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(ingredient.name),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(_getCategoryNameById(
+                                          ingredient.id_category_ingredient)),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child:
+                                          Text(ingredient.id_unit_ingredient),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(FormartPrice(
+                                          price: ingredient.price)),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                          '${ingredient.quantity.toInt()}'),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        FormartPrice(price: ingredient.total),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        _formatDate(ingredient.delete_time),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child:
-                                      Text(ingredient.create_time.toString()),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(ingredient.name),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(_getCategoryNameById(
-                                      ingredient.id_category_ingredient)),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(ingredient.id_unit_ingredient),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${ingredient.price}đ'),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(ingredient.number.toString()),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                      '${ingredient.price * ingredient.number}đ'),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        )),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
         ),
       ],
     );
@@ -565,53 +817,59 @@ class _Management_Ingredient_ScreenState
           ),
           // Scrollable rows
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: filteredCategories.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  Category_Ingredient categoryIngredient = entry.value;
-                  return Column(
-                    children: [
-                      Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          elevation: 3,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () => _openEditCategory_IngredientDialog(
-                                context, categoryIngredient),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text('${index + 1}'),
+            child: filteredCategories.isEmpty
+                ? const Center(
+                    child: Text(
+                        'Không có danh mục nguyên liệu nào được tìm thấy!'),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: filteredCategories.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        Category_Ingredient categoryIngredient = entry.value;
+                        return Column(
+                          children: [
+                            Card(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                elevation: 3,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () =>
+                                      _openEditCategory_IngredientDialog(
+                                          context, categoryIngredient),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('${index + 1}'),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(categoryIngredient.name),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(_formatDate(
+                                              categoryIngredient.create_time)),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(categoryIngredient.name),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(categoryIngredient.create_time
-                                        .toString()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+                                )),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -645,5 +903,11 @@ class _Management_Ingredient_ScreenState
         );
       },
     );
+  }
+
+  String FormartPrice({required double price}) {
+    String formattedAmount =
+        NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(price);
+    return formattedAmount;
   }
 }

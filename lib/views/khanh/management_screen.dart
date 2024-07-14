@@ -1,3 +1,6 @@
+import 'package:cake_coffee/views/customner_screen.dart';
+import 'package:cake_coffee/views/khanh/login_screen.dart';
+import 'package:cake_coffee/views/khanh/statistical_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cake_coffee/views/khanh/management_account_screen.dart';
 import 'package:cake_coffee/views/khanh/management_ingredient_screen.dart';
@@ -19,16 +22,31 @@ class _Management_ScreenState extends State<Management_Screen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Quản lý: ${widget.adminName}",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+          title: Text(
+            "Quản lý: ${widget.adminName}",
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        backgroundColor: const Color(0xFFE5BBBB),
-      ),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  Icons.exit_to_app,
+                  color: Colors.red.shade400,
+                ))
+          ],
+          backgroundColor: Colors.green.shade400 // const Color(0xFFE5BBBB),
+          ),
       body: Row(
         children: [
           Container(
@@ -41,26 +59,21 @@ class _Management_ScreenState extends State<Management_Screen> {
                 _elevenButton("Quản lý nguyên liệu", 1),
                 _elevenButton("Quản lý bàn", 2),
                 _elevenButton("Quản lý tài khoản", 3),
-                _elevenButton("Quản thống kê danh thu", 4),
+                _elevenButton("Quản lý khách hàng", 4),
+                _elevenButton("Quản thống kê", 5),
               ],
             ),
           ),
           Expanded(
             child: IndexedStack(
               index: _selectedIndex,
-              children: [
-                const Management_Product(),
-                const Management_Ingredient_Screen(),
-                const Management_Table(),
-                const Management_Account_Screen(),
-                Container(
-                    // Placeholder for "Quản thống kê danh thu"
-                    alignment: Alignment.center,
-                    child: Image.network(
-                      'https://firebasestorage.googleapis.com/v0/b/datn-628de.appspot.com/o/product_images%2F1719240663130.jpeg?alt=media&token=4477fbbc-c199-4d53-8163-f626f60564b3',
-                      width: 50,
-                      height: 50,
-                    )),
+              children: const [
+                Management_Product(),
+                Management_Ingredient_Screen(),
+                Management_Table(),
+                Management_Account_Screen(),
+                CustomerScreen(),
+                Statistical_Screen(),
               ],
             ),
           ),

@@ -1,46 +1,49 @@
+import 'package:cake_coffee/models/khanh/customers.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cake_coffee/models/khanh/users.dart';
+import 'package:flutter/services.dart';
 
-class EditUserPage extends StatefulWidget {
-  final Users user;
-  final Function(Users) onUpdateUser;
-  final Function(String) onDeleteUser;
+class EditCustomerPage extends StatefulWidget {
+  final Customers customers;
+  final Function(Customers) onUpdateCustomer;
+  final Function(String) onDeleteCustomer;
 
-  const EditUserPage({
+  const EditCustomerPage({
     super.key,
-    required this.user,
-    required this.onUpdateUser,
-    required this.onDeleteUser,
+    required this.customers,
+    required this.onUpdateCustomer,
+    required this.onDeleteCustomer,
   });
 
   static Future<void> openEditUserDialog(
     BuildContext context,
-    Users user,
-    Function(Users) onUpdateUser,
-    Function(String) onDeleteUser,
+    Customers customers,
+    Function(Customers) onUpdateCustomer,
+    Function(String) onDeleteCustomer,
   ) async {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return EditUserPage(
-          user: user,
-          onUpdateUser: onUpdateUser,
-          onDeleteUser: onDeleteUser,
+        return EditCustomerPage(
+          customers: customers,
+          onUpdateCustomer: onUpdateCustomer,
+          onDeleteCustomer: onDeleteCustomer,
         );
       },
     );
   }
 
   @override
-  _EditUserPageState createState() => _EditUserPageState();
+  _EditCustomerPageState createState() => _EditCustomerPageState();
 }
 
-class _EditUserPageState extends State<EditUserPage> {
+class _EditCustomerPageState extends State<EditCustomerPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
-  late TextEditingController _accountController;
+  late TextEditingController _phonetController;
+  late TextEditingController _pointtController;
   late TextEditingController _passwordController;
   late TextEditingController _confirmPasswordController;
   bool _showPassword = false;
@@ -50,8 +53,10 @@ class _EditUserPageState extends State<EditUserPage> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.user.name);
-    _accountController = TextEditingController(text: widget.user.account);
+    _nameController = TextEditingController(text: widget.customers.name);
+    _phonetController = TextEditingController(text: widget.customers.phone);
+    _pointtController =
+        TextEditingController(text: widget.customers.point.toString());
     _passwordController = TextEditingController();
     _confirmPasswordController =
         TextEditingController(); // Initialize _confirmPasswordController
@@ -60,7 +65,8 @@ class _EditUserPageState extends State<EditUserPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _accountController.dispose();
+    _phonetController.dispose();
+    _pointtController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -111,7 +117,8 @@ class _EditUserPageState extends State<EditUserPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       String name = _nameController.text.trim();
-      String account = _accountController.text.trim();
+      int point = int.tryParse(_pointtController.text.trim()) ?? 0;
+      String phone = _phonetController.text.trim();
       String password = _passwordController.text.trim();
       String confirmPassword = _confirmPasswordController.text.trim();
 
@@ -129,13 +136,14 @@ class _EditUserPageState extends State<EditUserPage> {
         }
 
         Map<String, dynamic> updatedData = {
+          'point': point,
           'name': name,
-          'account': account,
+          'phone': phone,
           'password': password,
         };
 
         await FirebaseFirestore.instance
-            .collection('users')
+            .collection('customers')
             .doc(userId)
             .update(updatedData);
 
@@ -147,12 +155,13 @@ class _EditUserPageState extends State<EditUserPage> {
 
         setState(() {
           _isEditing = false;
-          widget.user.name = name;
-          widget.user.account = account;
-          widget.user.password = password;
+          widget.customers.name = name;
+          widget.customers.phone = phone;
+          widget.customers.point = point;
+          widget.customers.password = password;
         });
 
-        widget.onUpdateUser(widget.user);
+        widget.onUpdateCustomer(widget.customers);
 
         Navigator.of(context).pop();
       } catch (error) {
@@ -170,44 +179,20 @@ class _EditUserPageState extends State<EditUserPage> {
 
   void _deleteUser(String userId) async {
     try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
+      await FirebaseFirestore.instance
+          .collection('customers')
           .doc(userId)
-          .get();
+          .delete();
 
-      if (userDoc.exists) {
-        String userRole = userDoc.get('role');
+      widget.onDeleteCustomer(userId);
 
-        if (userRole == 'Admin') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Không thể xóa tài khoản Admin'),
-            ),
-          );
-          return;
-        }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Xóa thành công'),
+        ),
+      );
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .delete();
-
-        widget.onDeleteUser(userId);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Xóa thành công'),
-          ),
-        );
-
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Người dùng không tồn tại'),
-          ),
-        );
-      }
+      Navigator.of(context).pop();
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -244,15 +229,50 @@ class _EditUserPageState extends State<EditUserPage> {
               ),
               const SizedBox(height: 16.0),
               TextFormField(
-                controller: _accountController,
+                controller: _phonetController,
                 decoration: const InputDecoration(
-                  labelText: 'Tài khoản',
+                  labelText: 'Số điện thoại',
                   border: OutlineInputBorder(),
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 enabled: !_isEditing,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập tài khoản';
+                    return 'Vui lòng nhập số điện thoại';
+                  }
+                  if (value.length != 10) {
+                    return 'Số điện thoại phải có đúng 10 chữ số';
+                  }
+                  if (!value.startsWith('03') &&
+                      !value.startsWith('07') &&
+                      !value.startsWith('09') &&
+                      !value.startsWith('02')) {
+                    return 'Số điện thoại phải bắt đầu bằng 03, 07, 09, 02';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                controller: _pointtController,
+                decoration: const InputDecoration(
+                  labelText: 'Điểm',
+                  border: OutlineInputBorder(),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
+                enabled: !_isEditing,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Vui lòng nhập điểm';
+                  }
+                  if (value.length > 5) {
+                    return 'Điểm tối đa 5 chữ số';
                   }
                   return null;
                 },
@@ -321,13 +341,13 @@ class _EditUserPageState extends State<EditUserPage> {
           child: const Text('Thoát'),
         ),
         ElevatedButton(
-          onPressed: _isEditing ? null : () => _editUser(widget.user.id),
+          onPressed: _isEditing ? null : () => _editUser(widget.customers.id),
           child: _isEditing
               ? const CircularProgressIndicator()
               : const Text('Lưu'),
         ),
         ElevatedButton(
-          onPressed: _isEditing ? null : () => _deleteUser(widget.user.id),
+          onPressed: _isEditing ? null : () => _deleteUser(widget.customers.id),
           style: ElevatedButton.styleFrom(
             iconColor: Colors.red,
             disabledIconColor: Colors.white,

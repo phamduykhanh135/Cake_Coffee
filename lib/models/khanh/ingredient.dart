@@ -5,7 +5,8 @@ class Ingredient {
   String id_category_ingredient;
   String name;
   double price;
-  int number;
+  double quantity;
+  double total;
   String id_unit_ingredient;
   DateTime? create_time;
   DateTime? update_time;
@@ -17,7 +18,8 @@ class Ingredient {
     required this.id_category_ingredient,
     required this.name,
     required this.price,
-    required this.number,
+    required this.quantity,
+    required this.total,
     required this.id_unit_ingredient,
     required this.create_time,
     required this.update_time,
@@ -32,7 +34,8 @@ class Ingredient {
       name: data['name'] ?? '',
       price: (data['price'] as num).toDouble(),
       id_unit_ingredient: data['id_unit_ingredient'] ?? '',
-      number: data['number'] ?? 0,
+      quantity: (data['quantity'] as num).toDouble(),
+      total: (data['total'] as num).toDouble(),
       create_time: (data['create_time'] as Timestamp).toDate(),
       update_time: data['update_time'] != null
           ? (data['update_time'] as Timestamp).toDate()
@@ -50,7 +53,8 @@ class Ingredient {
       'name': name,
       'price': price,
       'id_unit_ingredient': id_unit_ingredient,
-      'number': number,
+      'quantity': quantity,
+      'total': total,
       'create_time': create_time,
       'update_time': update_time,
       'delete_time': delete_time,

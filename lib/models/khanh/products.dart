@@ -87,3 +87,29 @@ Future<List<Product>> fetchProductsFromFirestore() async {
     return [];
   }
 }
+
+Future<bool> checkProductNameUnique(String productId, String newName) async {
+  try {
+    // Lấy danh sách các tên sản phẩm từ Firestore
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('products')
+        .where('name', isEqualTo: newName)
+        .get();
+
+    // Kiểm tra tên sản phẩm duy nhất (nếu trùng tên, chỉ cho phép nếu đó là sản phẩm đang sửa)
+    if (querySnapshot.docs.isEmpty) {
+      return true; // Tên sản phẩm mới là duy nhất
+    } else {
+      // Nếu tìm thấy sản phẩm khác có cùng tên
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        if (doc.id != productId) {
+          return false; // Tên sản phẩm đã tồn tại và không phải là sản phẩm đang sửa
+        }
+      }
+      return true; // Nếu chỉ tìm thấy sản phẩm đang sửa thì tên sản phẩm mới là duy nhất
+    }
+  } catch (e) {
+    print('Error checking product name uniqueness: $e');
+    return false;
+  }
+}

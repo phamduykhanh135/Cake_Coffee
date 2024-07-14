@@ -7,6 +7,7 @@ import 'package:cake_coffee/models/khanh/products.dart';
 import 'package:cake_coffee/presents/khanh/add_category_product.dart';
 import 'package:cake_coffee/presents/khanh/resuable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Management_Product extends StatefulWidget {
   const Management_Product({super.key});
@@ -214,7 +215,7 @@ class _Management_ProductState extends State<Management_Product>
                     AddProductPage.openAddProductDialog(context, _onAddProduct);
                   },
                   text: "Thêm",
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.green.shade400,
                 ),
               ),
             ],
@@ -310,7 +311,7 @@ class _Management_ProductState extends State<Management_Product>
                           context, _onAddCategory);
                     },
                     text: "Thêm",
-                    backgroundColor: Colors.green,
+                    backgroundColor: Colors.green.shade400,
                   ),
                 ),
               ],
@@ -392,45 +393,50 @@ class _Management_ProductState extends State<Management_Product>
           ),
           // Scrollable rows
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: filteredCategories.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  Category category = entry.value;
-                  return Column(
-                    children: [
-                      Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5)),
-                          elevation: 3,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () =>
-                                _openEditCategoryDialog(context, category),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text('${index + 1}'),
+            child: filteredCategories.isEmpty
+                ? const Center(
+                    child:
+                        Text('Không có danh mục sản phẩm nào được tìm thấy!'),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: filteredCategories.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        Category category = entry.value;
+                        return Column(
+                          children: [
+                            Card(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5)),
+                                elevation: 3,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () => _openEditCategoryDialog(
+                                      context, category),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('${index + 1}'),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(category.name),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(category.name),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ))
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
+                                ))
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -498,94 +504,110 @@ class _Management_ProductState extends State<Management_Product>
         ),
         // Scrollable rows
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: filteredProducts.asMap().entries.map((entry) {
-                int index = entry.key;
-                Product product = entry.value;
-                return Column(
-                  children: [
-                    Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                        elevation: 3,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () => _openEditProductDialog(context, product),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${index + 1}'),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(product.name),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(_getCategoryNameById(
-                                      product.id_category_product)),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(product.id_unit_product),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${product.price}đ'),
-                                ),
-                              ),
-                              Expanded(
-                                  flex: 1,
-                                  child: Row(
-                                    children: [
-                                      Padding(
+          child: filteredProducts.isEmpty
+              ? const Center(
+                  child: Text('Không có sản phẩm nào được tìm thấy!'),
+                )
+              : SingleChildScrollView(
+                  child: Column(
+                    children: filteredProducts.asMap().entries.map((entry) {
+                      int index = entry.key;
+                      Product product = entry.value;
+                      return Column(
+                        children: [
+                          Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5)),
+                              elevation: 3,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () =>
+                                    _openEditProductDialog(context, product),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: product.image.isNotEmpty
-                                            ? CachedNetworkImage(
-                                                imageUrl: product.image,
-                                                placeholder: (context, url) =>
-                                                    const CircularProgressIndicator(),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        const Icon(Icons.error),
-                                                width: 30,
-                                                height: 30,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : const Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Icon(Icons.error),
-                                              ),
+                                        child: Text('${index + 1}'),
                                       ),
-                                    ],
-                                  )),
-                            ],
-                          ),
-                        )),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(product.name),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(_getCategoryNameById(
+                                            product.id_category_product)),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(product.id_unit_product),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                            FormartPrice(price: product.price)),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: product.image.isNotEmpty
+                                                  ? CachedNetworkImage(
+                                                      imageUrl: product.image,
+                                                      placeholder: (context,
+                                                              url) =>
+                                                          const CircularProgressIndicator(),
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          const Icon(
+                                                              Icons.error),
+                                                      width: 30,
+                                                      height: 30,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : const Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Icon(Icons.error),
+                                                    ),
+                                            ),
+                                          ],
+                                        )),
+                                  ],
+                                ),
+                              )),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
         ),
       ],
     );
+  }
+
+  String FormartPrice({required double price}) {
+    String formattedAmount =
+        NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(price);
+    return formattedAmount;
   }
 
   void _openEditProductDialog(BuildContext context, Product product) async {

@@ -261,10 +261,11 @@ Widget roundedElevatedButton({
       }),
     ),
     child: Padding(
-      padding: EdgeInsets.all(0.0), // Khoảng cách giữa văn bản và viền nút
+      padding:
+          const EdgeInsets.all(0.0), // Khoảng cách giữa văn bản và viền nút
       child: Text(
         text,
-        style: TextStyle(
+        style: const TextStyle(
             fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
       ),
     ),

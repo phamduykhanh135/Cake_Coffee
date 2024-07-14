@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cake_coffee/models/khanh/category_product.dart';
 import 'package:cake_coffee/models/khanh/products.dart';
+import 'package:intl/intl.dart';
 
 class EditProductsPage extends StatefulWidget {
   final Product product;
@@ -56,8 +55,9 @@ class _EditProductsPageState extends State<EditProductsPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product.name);
-    _priceController =
-        TextEditingController(text: widget.product.price.toString());
+    _priceController = TextEditingController(
+      text: FormartPrice(price: widget.product.price),
+    );
     _selectedCategoryId = widget.product.id_category_product ?? '';
     _selectedUnit = widget.product.id_unit_product ?? '';
     loadCategories();
@@ -112,9 +112,56 @@ class _EditProductsPageState extends State<EditProductsPage> {
     });
 
     String name = _nameController.text.trim();
-    double price = double.tryParse(_priceController.text.trim()) ?? 0.0;
+    int price = int.tryParse(_priceController.text.trim()) ?? 0;
+    String priceString = price
+        .toString(); // Chuyển đổi price sang chuỗi nhưng chỉ giữ phần nguyên
 
     try {
+      // Kiểm tra xem tên sản phẩm mới đã tồn tại chưa
+      if (name != widget.product.name) {
+        QuerySnapshot existingProductSnapshot = await FirebaseFirestore.instance
+            .collection('products')
+            .where('name', isEqualTo: name)
+            .get();
+
+        if (existingProductSnapshot.docs.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tên sản phẩm đã tồn tại, vui lòng chọn tên khác.'),
+            ),
+          );
+          setState(() {
+            _isEditing = false;
+          });
+          return;
+        }
+      }
+
+      // Kiểm tra điều kiện về giá và độ dài tên sản phẩm
+      if (priceString.length > 8) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Giá sản phẩm tối đa là 8 số (ví dụ: 800000000).'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+      if (name.length > 50) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chiều dài tên sản phẩm tối đa là 50 ký tự!.'),
+          ),
+        );
+        setState(() {
+          _isEditing = false;
+        });
+        return;
+      }
+
+      // Nếu điều kiện đều thỏa mãn, tiến hành cập nhật sản phẩm
       Map<String, dynamic> updatedData = {
         'name': name,
         'price': price,
@@ -135,14 +182,14 @@ class _EditProductsPageState extends State<EditProductsPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thàn công!'),
+          content: Text('Cập nhật thành công!'),
         ),
       );
 
       setState(() {
         _isEditing = false;
         widget.product.name = name;
-        widget.product.price = price;
+        widget.product.price = price.toDouble();
         widget.product.id_category_product = _selectedCategoryId;
         widget.product.id_unit_product = _selectedUnit;
         if (_imageBytes != null) {
@@ -176,7 +223,7 @@ class _EditProductsPageState extends State<EditProductsPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Product deleted successfully!'),
+          content: Text('Xoá thành công!'),
         ),
       );
 
@@ -184,7 +231,7 @@ class _EditProductsPageState extends State<EditProductsPage> {
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete product: $error'),
+          content: Text('Lỗi: $error'),
         ),
       );
     }
@@ -218,7 +265,7 @@ class _EditProductsPageState extends State<EditProductsPage> {
           return true;
         },
         child: AlertDialog(
-          title: const Text('Edit Product'),
+          title: const Text('Cập nhật sản phẩm'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,16 +335,19 @@ class _EditProductsPageState extends State<EditProductsPage> {
                   ),
                 ),
                 const SizedBox(height: 16.0),
-                _imageBytes == null
-                    ? ElevatedButton(
-                        onPressed: _isEditing ? null : _pickImage,
-                        child: const Text('Chọn hình ảnh'),
-                      )
-                    : Image.memory(
-                        _imageBytes!,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      ),
+                // Thay đổi trong hàm build của _EditProductsPageState
+                GestureDetector(
+                  onTap: _isEditing ? null : _pickImage,
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                    ),
+                    child: _imageBytes == null
+                        ? const Center(child: Text('Chọn ảnh'))
+                        : Image.memory(_imageBytes!, fit: BoxFit.cover),
+                  ),
+                ),
               ],
             ),
           ),
@@ -327,5 +377,11 @@ class _EditProductsPageState extends State<EditProductsPage> {
             ),
           ],
         ));
+  }
+
+  String FormartPrice({required double price}) {
+    String formattedAmount =
+        NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(price);
+    return formattedAmount;
   }
 }
