@@ -397,7 +397,7 @@ class _In_PlaceState extends State<In_Place> {
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
-                                              '${orderDetail.price.toStringAsFixed(2)} đ'),
+                                              '${FormartPrice(price: orderDetail.price)} '),
                                         ),
                                       ),
                                       Expanded(
@@ -413,7 +413,7 @@ class _In_PlaceState extends State<In_Place> {
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
-                                              '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)} đ'),
+                                              '${(FormartPrice(price: orderDetail.quantity * orderDetail.price))} '),
                                         ),
                                       ),
                                     ],
@@ -493,7 +493,7 @@ class _In_PlaceState extends State<In_Place> {
                                                 padding:
                                                     const EdgeInsets.all(8.0),
                                                 child: Text(
-                                                    '${orderDetail.price.toStringAsFixed(2)} đ'),
+                                                    '${FormartPrice(price: orderDetail.price)} '),
                                               ),
                                             ),
                                             Expanded(
@@ -511,7 +511,7 @@ class _In_PlaceState extends State<In_Place> {
                                                 padding:
                                                     const EdgeInsets.all(8.0),
                                                 child: Text(
-                                                    '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)} đ'),
+                                                    '${(FormartPrice(price: orderDetail.quantity * orderDetail.price))} '),
                                               ),
                                             ),
                                           ],
@@ -645,7 +645,7 @@ class _In_PlaceState extends State<In_Place> {
                               child: Row(
                                 children: [
                                   Text(
-                                    "${totalAmount.toStringAsFixed(2)} đ",
+                                    "${FormartPrice(price: totalAmount)} ",
                                     style: TextStyle(
                                       decoration: selectedVoucherValue > 0
                                           ? TextDecoration.lineThrough
@@ -657,7 +657,7 @@ class _In_PlaceState extends State<In_Place> {
                                   ),
                                   if (selectedVoucherValue > 0)
                                     Text(
-                                      "${(totalAmount - selectedVoucherValue).toStringAsFixed(2)} đ",
+                                      "${(FormartPrice(price: totalAmount - selectedVoucherValue))} ",
                                       style: const TextStyle(),
                                     ),
                                 ],
@@ -686,7 +686,8 @@ class _In_PlaceState extends State<In_Place> {
                                       _showVoucherDialog();
                                     },
                                     text: selectedVoucherValue > 0
-                                        ? "${selectedVoucherValue.toStringAsFixed(2)}đ"
+                                        ? FormartPrice(
+                                            price: selectedVoucherValue)
                                         : "Chọn voucher",
                                     backgroundColor: selectedVoucherValue > 0
                                         ? Colors.green.shade400
@@ -880,7 +881,7 @@ class _In_PlaceState extends State<In_Place> {
                                           Container(
                                             padding: const EdgeInsets.all(5),
                                             child: Text(
-                                                "${changeAmount.toStringAsFixed(2)} đ"),
+                                                "${FormartPrice(price: changeAmount)} "),
                                           ),
                                         ],
                                       ),
@@ -990,7 +991,7 @@ class _In_PlaceState extends State<In_Place> {
               ),
               ...vouchers.map((value) {
                 return ListTile(
-                  title: Text("Voucher ${value.toStringAsFixed(2)} đ"),
+                  title: Text("Voucher ${FormartPrice(price: value)} "),
                   onTap: () {
                     setState(() {
                       selectedVoucherValue = value;
@@ -1141,8 +1142,8 @@ class _In_PlaceState extends State<In_Place> {
                                           flex: 2,
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                                '${orderDetail.price.toStringAsFixed(2)} đ'),
+                                            child: Text(FormartPrice(
+                                                price: orderDetail.price)),
                                           ),
                                         ),
                                         Expanded(
@@ -1158,7 +1159,9 @@ class _In_PlaceState extends State<In_Place> {
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)}đ',
+                                              (FormartPrice(
+                                                  price: orderDetail.quantity *
+                                                      orderDetail.price)),
                                             ),
                                           ),
                                         ),
@@ -1191,7 +1194,7 @@ class _In_PlaceState extends State<In_Place> {
                                 children: [
                                   const Text("Tổng hóa đơn:"),
                                   Text(
-                                    "${totalAmount.toStringAsFixed(2)} đ",
+                                    "${FormartPrice(price: totalAmount)} ",
                                     style: TextStyle(
                                       decoration: selectedVoucherValue > 0
                                           ? TextDecoration.lineThrough
@@ -1203,21 +1206,21 @@ class _In_PlaceState extends State<In_Place> {
                                   ),
                                   if (selectedVoucherValue > 0)
                                     Text(
-                                        "${(totalAmount - vourcher).toStringAsFixed(2)} đ"),
+                                        "${(FormartPrice(price: totalAmount - vourcher))} "),
                                 ],
                               ),
                               if (selectedVoucherValue > 0)
                                 Row(
                                   children: [
                                     const Text("Giảm giá:"),
-                                    Text(" ${vourcher.toStringAsFixed(2)}đ"),
+                                    Text(" ${FormartPrice(price: vourcher)}"),
                                   ],
                                 ),
                               Row(
                                 children: [
                                   const Text("Tổng tiền thanh toán:"),
                                   Text(
-                                      "${(totalAmount - vourcher).toStringAsFixed(2)} đ"),
+                                      "${(FormartPrice(price: totalAmount - vourcher))} "),
                                 ],
                               ),
                               if (isPay)
@@ -1230,21 +1233,21 @@ class _In_PlaceState extends State<In_Place> {
                                 Row(
                                   children: [
                                     const Text("Tiền nhận:"),
-                                    Text("${amountPaid.toStringAsFixed(2)} đ"),
+                                    Text("${FormartPrice(price: amountPaid)} "),
                                   ],
                                 ),
                               if (isPay)
                                 Row(
                                   children: [
                                     const Text("Tiền thừa:"),
-                                    Text("${changeAmount.toStringAsFixed(2)}đ"),
+                                    Text(FormartPrice(price: changeAmount)),
                                   ],
                                 ),
                               if (isPay == false)
                                 Row(
                                   children: [
                                     Text(
-                                        "Chuyển khoản: ${(totalAmount - selectedVoucherValue).toStringAsFixed(2)}  đ"),
+                                        "Chuyển khoản: ${(FormartPrice(price: totalAmount - selectedVoucherValue))}  "),
                                     //Text("${totalAmount.toStringAsFixed(2)} đ"),
                                   ],
                                 ),
@@ -1567,7 +1570,7 @@ class _In_PlaceState extends State<In_Place> {
                         pw.Expanded(
                           flex: 2,
                           child: pw.Text(
-                            '${orderDetail.price.toStringAsFixed(2)} đ',
+                            '${FormartPrice(price: orderDetail.price)} ',
                             style: pw.TextStyle(font: ttf),
                           ),
                         ),
@@ -1581,7 +1584,7 @@ class _In_PlaceState extends State<In_Place> {
                         pw.Expanded(
                           flex: 3,
                           child: pw.Text(
-                            '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)} đ',
+                            '${(FormartPrice(price: orderDetail.quantity * orderDetail.price))} ',
                             style: pw.TextStyle(font: ttf),
                           ),
                         ),
@@ -1605,7 +1608,7 @@ class _In_PlaceState extends State<In_Place> {
                       style: pw.TextStyle(font: ttf),
                     ),
                     pw.Text(
-                      "${totalAmount.toStringAsFixed(2)} đ",
+                      "${FormartPrice(price: totalAmount)} ",
                       style: pw.TextStyle(
                         font: ttf,
                         decoration: selectedVoucherValue > 0
@@ -1618,7 +1621,7 @@ class _In_PlaceState extends State<In_Place> {
                     ),
                     if (selectedVoucherValue > 0)
                       pw.Text(
-                          "${(totalAmount - vourcher).toStringAsFixed(2)} đ",
+                          "${(FormartPrice(price: totalAmount - vourcher))} ",
                           style: pw.TextStyle(font: ttf)),
                   ],
                 ),
@@ -1634,7 +1637,7 @@ class _In_PlaceState extends State<In_Place> {
                 pw.Container(
                   alignment: pw.Alignment.centerLeft,
                   child: pw.Text(
-                    'giảm giá: ${vourcher.toStringAsFixed(2)} đ',
+                    'giảm giá: ${FormartPrice(price: vourcher)}',
                     style: pw.TextStyle(font: ttf),
                   ),
                 ),
@@ -1642,7 +1645,7 @@ class _In_PlaceState extends State<In_Place> {
                 pw.Container(
                   alignment: pw.Alignment.centerLeft,
                   child: pw.Text(
-                    'Tiền nhận: ${amountPaid.toStringAsFixed(2)} đ',
+                    'Tiền nhận: ${FormartPrice(price: amountPaid)}',
                     style: pw.TextStyle(font: ttf),
                   ),
                 ),
@@ -1651,7 +1654,7 @@ class _In_PlaceState extends State<In_Place> {
                 pw.Container(
                   alignment: pw.Alignment.centerLeft,
                   child: pw.Text(
-                    'Tiền thối: ${changeAmount.toStringAsFixed(2)} đ',
+                    'Tiền thối: ${FormartPrice(price: changeAmount)} ',
                     style: pw.TextStyle(font: ttf),
                   ),
                 ),
@@ -1660,7 +1663,7 @@ class _In_PlaceState extends State<In_Place> {
                 pw.Container(
                   alignment: pw.Alignment.centerLeft,
                   child: pw.Text(
-                    'Chuyển khoản: ${(totalAmount - vourcher).toStringAsFixed(2)} đ',
+                    'Chuyển khoản: ${(FormartPrice(price: totalAmount - vourcher))} ',
                     style: pw.TextStyle(font: ttf),
                   ),
                 ),
@@ -1861,7 +1864,7 @@ class _In_PlaceState extends State<In_Place> {
                                                   padding:
                                                       const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                      '${orderDetails.price.toStringAsFixed(2)} đ'),
+                                                      '${FormartPrice(price: orderDetails.price)} '),
                                                 ),
                                               ),
                                               Expanded(
@@ -1879,7 +1882,7 @@ class _In_PlaceState extends State<In_Place> {
                                                   padding:
                                                       const EdgeInsets.all(8.0),
                                                   child: Text(
-                                                    '${(orderDetails.quantity * orderDetails.price).toStringAsFixed(2)} đ',
+                                                    '${(FormartPrice(price: orderDetails.quantity * orderDetails.price))} ',
                                                   ),
                                                 ),
                                               ),
@@ -2083,7 +2086,7 @@ class _In_PlaceState extends State<In_Place> {
                                                         const EdgeInsets.all(
                                                             8.0),
                                                     child: Text(
-                                                        '${orderDetails.price.toStringAsFixed(2)} đ'),
+                                                        '${FormartPrice(price: orderDetails.price)} '),
                                                   ),
                                                 ),
                                                 Expanded(
@@ -2103,7 +2106,7 @@ class _In_PlaceState extends State<In_Place> {
                                                         const EdgeInsets.all(
                                                             8.0),
                                                     child: Text(
-                                                      '${(orderDetails.quantity * orderDetails.price).toStringAsFixed(2)} đ',
+                                                      '${(FormartPrice(price: orderDetails.quantity * orderDetails.price))} ',
                                                     ),
                                                   ),
                                                 ),
@@ -2310,7 +2313,7 @@ class _In_PlaceState extends State<In_Place> {
                           pw.Expanded(
                             flex: 2,
                             child: pw.Text(
-                              '${orderDetail.price.toStringAsFixed(2)} đ',
+                              '${FormartPrice(price: orderDetail.price)} ',
                               style: pw.TextStyle(font: ttf),
                             ),
                           ),
@@ -2324,7 +2327,7 @@ class _In_PlaceState extends State<In_Place> {
                           pw.Expanded(
                             flex: 3,
                             child: pw.Text(
-                              '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)} đ',
+                              '${(FormartPrice(price: orderDetail.quantity * orderDetail.price))} ',
                               style: pw.TextStyle(font: ttf),
                             ),
                           ),
@@ -2488,7 +2491,7 @@ class _In_PlaceState extends State<In_Place> {
                           pw.Expanded(
                             flex: 2,
                             child: pw.Text(
-                              '${orderDetail.price.toStringAsExponential(2)} đ',
+                              '${FormartPrice(price: orderDetail.price)} ',
                               //  textAlign: pw.TextAlign.right, // Căn phải
                               style: pw.TextStyle(font: ttf),
                             ),
@@ -2503,7 +2506,7 @@ class _In_PlaceState extends State<In_Place> {
                           pw.Expanded(
                             flex: 3,
                             child: pw.Text(
-                              '${(orderDetail.quantity * orderDetail.price).toStringAsFixed(2)} đ',
+                              '${(FormartPrice(price: orderDetail.quantity * orderDetail.price))} ',
                               style: pw.TextStyle(font: ttf),
                             ),
                           ),
@@ -2886,7 +2889,7 @@ class _In_PlaceState extends State<In_Place> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Giá: ${orderDetail.price.toStringAsFixed(2)} đ'),
+                  Text('Giá: ${FormartPrice(price: orderDetail.price)} '),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -2966,7 +2969,7 @@ class _In_PlaceState extends State<In_Place> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('Giá: ${orderDetail.price.toStringAsFixed(2)} đ'),
+                  Text('Giá: ${FormartPrice(price: orderDetail.price)} '),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -3077,7 +3080,7 @@ class _In_PlaceState extends State<In_Place> {
                         child: Icon(Icons.error),
                       ),
                 title: Text(product.name),
-                subtitle: Text('${product.price.toStringAsFixed(2)} đ'),
+                subtitle: Text('${FormartPrice(price: product.price)} '),
                 onTap: () => _showAddQuantityDialog(product),
               );
             },
@@ -3175,7 +3178,7 @@ class _In_PlaceState extends State<In_Place> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Text('Giá: ${product.price.toStringAsFixed(2)} đ'),
+                  Text('Giá: ${FormartPrice(price: product.price)}'),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -3353,5 +3356,11 @@ class _In_PlaceState extends State<In_Place> {
   Future<Uint8List> loadAsset(String path) async {
     final ByteData data = await rootBundle.load(path);
     return data.buffer.asUint8List();
+  }
+
+  String FormartPrice({required double price}) {
+    String formattedAmount =
+        NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(price);
+    return formattedAmount;
   }
 }

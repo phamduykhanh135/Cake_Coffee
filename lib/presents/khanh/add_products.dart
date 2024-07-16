@@ -115,10 +115,10 @@ class _AddProductPageState extends State<AddProductPage> {
         });
         return;
       }
-      if (price.toString().length > 5) {
+      if (price.toString().length > 10) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Giá sản phẩm tối đa là 5 số (ví dụ:500!.'),
+            content: Text('Giá sản phẩm tối đa là 10 số .'),
           ),
         );
         setState(() {
