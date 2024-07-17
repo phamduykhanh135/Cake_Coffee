@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Demo extends StatefulWidget {
   final String nvName;
@@ -57,12 +58,14 @@ class _DemoState extends State<Demo> {
   List<Category> categories = [];
   bool _errorMessage = false;
 
+  List<List<String>> _draggedTableGroups = [];
   @override
   void initState() {
     super.initState();
     _loadCategories(); // Hàm để tải danh mục từ Firestore
     _startColorChange();
     _checkTableStatus();
+    _loadDraggedTableGroups();
   }
 
   void _getCustomerPoint(String phone) async {
@@ -233,7 +236,7 @@ class _DemoState extends State<Demo> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildTableList(
+                          _buildTableList2(
                               'Đang hoạt động', combinedActiveTables),
                           _buildTableList('Chờ duyệt', pendingApprovalTables),
                           _buildTableList('Trống', emptyTables),
@@ -575,6 +578,19 @@ class _DemoState extends State<Demo> {
 
             await doc.reference.delete();
           }
+
+          setState(() {
+            // Tìm và tách bàn từ các nhóm kéo hiện tại
+            for (var group in _draggedTableGroups) {
+              if (group.contains(tableName)) {
+                group.remove(tableName);
+                break; // Đảm bảo chỉ tách một bàn duy nhất
+              }
+            }
+
+            // Loại bỏ các nhóm không có bàn sau khi tách
+            _draggedTableGroups.removeWhere((group) => group.length == 1);
+          });
 
           await _firestore.collection('tables').doc(idtable).update({
             'status': 'Trống',
@@ -1838,7 +1854,30 @@ class _DemoState extends State<Demo> {
                   amountPaidController.clear();
                   _phoneCustomer = "";
                   _point = '';
+
+                  // Tìm và tách bàn từ các nhóm kéo hiện tại
+                  for (var group in _draggedTableGroups) {
+                    if (group.contains(_selectedTable!.name)) {
+                      group.remove(_selectedTable!.name);
+                      break; // Đảm bảo chỉ tách một bàn duy nhất
+                    }
+                  }
+
+                  // Loại bỏ các nhóm không có bàn sau khi tách
+                  _draggedTableGroups.removeWhere((group) => group.length == 1);
                 });
+                deleteOrderDetails(_selectedTable!.id);
+                _firestore
+                    .collection('tables')
+                    .doc(_selectedTable!.id)
+                    .update({'status': 'Trống'});
+                // setState(() {
+                //   isActive = false;
+                // });
+                isActive = false;
+                // await _firestore.collection('tables').doc(idtable).update({
+                //   'status': 'Trống',
+                //});
               },
             ),
             TextButton(
@@ -2228,14 +2267,14 @@ class _DemoState extends State<Demo> {
           TextButton(
             child: const Text('Đóng'),
             onPressed: () {
-              deleteOrderDetails(_selectedTable!.id);
-              _firestore
-                  .collection('tables')
-                  .doc(_selectedTable!.id)
-                  .update({'status': 'Trống'});
-              setState(() {
-                isActive = false;
-              });
+              // deleteOrderDetails(_selectedTable!.id);
+              // _firestore
+              //     .collection('tables')
+              //     .doc(_selectedTable!.id)
+              //     .update({'status': 'Trống'});
+              // setState(() {
+              //   isActive = false;
+              // });
               Navigator.of(context).pop();
             },
           ),
@@ -3266,6 +3305,465 @@ class _DemoState extends State<Demo> {
         print('Error removing order detail: $e');
       }
     }
+  }
+
+  bool _canDragTable(String tableName, List<Tables> tables) {
+    return tables.any((table) => table.name == tableName);
+  }
+
+  Future<void> _showDragTableDialog(List<Tables> tables) async {
+    TextEditingController controller = TextEditingController();
+
+    // Lọc các bàn theo trạng thái và hiển thị thành từng hàng
+    List<Tables> addproduct =
+        tables.where((table) => table.status == 'Gọi thêm').toList();
+    List<Tables> activeTables =
+        tables.where((table) => table.status == 'Đang hoạt động').toList();
+    List<Tables> combinedActiveTables = activeTables + addproduct;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Kéo bàn'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: 'Ví dụ: 8,10,4'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hủy'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Kéo'),
+              onPressed: () {
+                List<String> tableNames =
+                    controller.text.split(',').map((e) => e.trim()).toList();
+                bool isValid = true;
+
+                // Kiểm tra các trường hợp lỗi
+                for (var tableName in tableNames) {
+                  if (!_isValidTableName(tableName) ||
+                      !_canDragTable(tableName, combinedActiveTables)) {
+                    isValid = false;
+                    break;
+                  }
+                }
+
+                if (!isValid) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Tên bàn không hợp lệ hoặc không thể kéo bàn!'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  // Tạo danh sách các bàn sẽ được thêm vào các nhóm kéo mới
+                  List<String> tablesToMove = [];
+
+                  // Kiểm tra từng bàn có nằm trong các nhóm kéo hiện tại không
+                  for (var tableName in tableNames) {
+                    bool foundGroup = false;
+
+                    // Kiểm tra các nhóm bàn đã có
+                    for (var group in _draggedTableGroups) {
+                      // Nếu bàn nằm trong một nhóm đã có
+                      if (group.contains(tableName)) {
+                        foundGroup = true;
+                        break;
+                      }
+                    }
+
+                    // Nếu bàn không nằm trong bất kỳ nhóm nào đã có
+                    if (!foundGroup) {
+                      tablesToMove.add(tableName);
+                    }
+                  }
+
+                  // Thêm nhóm bàn mới nếu có bàn được chọn để kéo
+                  if (tablesToMove.isNotEmpty) {
+                    _draggedTableGroups.add(tablesToMove);
+                    _saveDraggedTableGroups(); // Lưu khi thêm nhóm bàn
+                  }
+
+                  // Kiểm tra lại các nhóm kéo, loại bỏ các nhóm chỉ chứa một bàn
+                  _draggedTableGroups.removeWhere((group) => group.length == 1);
+                });
+
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Tách'),
+              onPressed: () {
+                List<String> tableNames =
+                    controller.text.split(',').map((e) => e.trim()).toList();
+                bool isValid = true;
+
+                // Kiểm tra các trường hợp lỗi
+                for (var tableName in tableNames) {
+                  if (!_isValidTableName(tableName) ||
+                      !_canDragTable(tableName, combinedActiveTables)) {
+                    isValid = false;
+                    break;
+                  }
+                }
+
+                if (!isValid) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('Tên bàn không hợp lệ hoặc không thể kéo bàn!'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  // // Tạo danh sách các bàn sẽ được tách ra khỏi các nhóm kéo hiện tại
+                  // List<String> tablesToSplit = [];
+
+                  // // Kiểm tra từng bàn có nằm trong các nhóm kéo hiện tại không
+                  // for (var tableName in tableNames) {
+                  //   // Tìm và tách bàn từ các nhóm kéo hiện tại
+                  //   for (var group in _draggedTableGroups) {
+                  //     if (group.contains(tableName)) {
+                  //       group.remove(tableName);
+                  //       tablesToSplit.add(tableName);
+                  //       break;
+                  //     }
+                  //   }
+                  // }
+                  // Tạo danh sách các bàn sẽ được tách ra khỏi các nhóm kéo hiện tại
+                  List<String> tablesToSplit = [];
+
+                  // Tạo một bản sao của _draggedTableGroups để xử lý
+                  List<List<String>> updatedGroups =
+                      List.from(_draggedTableGroups);
+
+                  // Kiểm tra từng bàn có nằm trong các nhóm kéo hiện tại không
+                  for (var tableName in tableNames) {
+                    // Tìm và tách bàn từ các nhóm kéo hiện tại
+                    for (var group in updatedGroups) {
+                      if (group.contains(tableName)) {
+                        group.remove(tableName);
+                        break;
+                      }
+                    }
+                  }
+                  _draggedTableGroups = updatedGroups;
+
+                  // Loại bỏ các nhóm không có bàn sau khi tách
+                  _draggedTableGroups.removeWhere((group) => group.isEmpty);
+
+                  _saveDraggedTableGroups();
+                });
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _isValidTableName(String tableName) {
+    // Kiểm tra tên bàn có phải là số không
+    try {
+      int.parse(tableName.replaceAll('Bàn', '').trim());
+      // Kiểm tra status của bàn (chỉ cho kéo khi bàn đang hoạt động)
+      // Thêm các yêu cầu kiểm tra khác nếu cần
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _saveDraggedTableGroups() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> jsonList = _draggedTableGroups.map((group) {
+      return group.join(',');
+    }).toList();
+    await prefs.setStringList('dolio', jsonList);
+  }
+
+  // Hàm đọc danh sách nhóm bàn từ SharedPreferences
+  Future<void> _loadDraggedTableGroups() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> jsonList = prefs.getStringList('dolio') ?? [];
+    _draggedTableGroups = jsonList.map((json) {
+      return json.split(',');
+    }).toList();
+  }
+
+  Widget _buildTableList2(String title, List<Tables> tables) {
+    List<Tables> otherTables = tables.where((table) {
+      bool isDragged = false;
+      for (var group in _draggedTableGroups) {
+        if (group.contains(table.name)) {
+          isDragged = true;
+          break;
+        }
+      }
+      return !isDragged;
+    }).toList();
+
+    return Container(
+      color: Colors.grey.shade100,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            color: const Color.fromARGB(255, 213, 205, 132),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: roundedElevatedButton(
+                      onPressed: () => _showDragTableDialog(
+                          tables), // Truyền context và danh sách bàn vào hàm _showDragTableDialog
+                      text: "Kéo bàn",
+                      backgroundColor: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(15),
+            child: Column(
+              children: [
+                // Hiển thị các nhóm bàn được kéo trong các khung màu vàng
+                for (var group in _draggedTableGroups)
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 5),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.yellow, width: 3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                        childAspectRatio:
+                            1, // Aspect ratio 1:1 for square appearance
+                      ),
+                      itemCount: group.length,
+                      itemBuilder: (context, index) {
+                        String tableName = group[index];
+                        Tables table =
+                            tables.firstWhere((t) => t.name == tableName);
+
+                        bool isSelected = table.id == _selectedTableId;
+
+                        // Xác định màu nền dựa trên trạng thái của bàn
+                        Color backgroundColor;
+                        switch (table.status) {
+                          case 'Chờ duyệt':
+                            backgroundColor =
+                                const Color.fromARGB(255, 225, 99, 91);
+                            break;
+                          case 'Đang hoạt động':
+                            backgroundColor =
+                                const Color.fromARGB(255, 96, 220, 100);
+                            break;
+                          case 'Gọi thêm':
+                            backgroundColor =
+                                _backgroundColor; // đổi màu đỏ vàng liên tục
+                            break;
+                          case 'Trống':
+                          default:
+                            backgroundColor =
+                                const Color.fromARGB(255, 207, 205, 205);
+                            break;
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedTable = table; // Cập nhật bàn được chọn
+                              _selectedTableId = table.id;
+                              isActive = table.status == 'Đang hoạt động';
+                              isPendingApproval = table.status == 'Chờ duyệt';
+                              isCallMore = table.status == 'Gọi thêm';
+                            });
+                            _openOrderDialog(table);
+                          },
+                          child: Material(
+                            borderRadius: BorderRadius.circular(8),
+                            elevation: isSelected ? 6 : 3,
+                            color: isSelected
+                                ? backgroundColor.withOpacity(0.7)
+                                : backgroundColor,
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () {
+                                  setState(() {
+                                    _selectedTableId = table.id;
+                                    _selectedTable = table;
+                                    isActive = table.status == 'Đang hoạt động';
+                                    isPendingApproval =
+                                        table.status == 'Chờ duyệt';
+                                    isCallMore = table.status == 'Gọi thêm';
+                                  });
+                                  _openOrderDialog(table);
+                                },
+                                splashColor: Colors.grey.withOpacity(0.5),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Bàn ${table.name}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: isSelected
+                                              ? Colors.black
+                                              : Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                // Hiển thị các bàn còn lại
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio:
+                        1, // Aspect ratio 1:1 for square appearance
+                  ),
+                  itemCount: otherTables.length,
+                  itemBuilder: (context, index) {
+                    Tables table = otherTables[index];
+                    bool isSelected = table.id == _selectedTableId;
+
+                    // Xác định màu nền dựa trên trạng thái của bàn
+                    Color backgroundColor;
+                    switch (table.status) {
+                      case 'Chờ duyệt':
+                        backgroundColor =
+                            const Color.fromARGB(255, 225, 99, 91);
+                        break;
+                      case 'Đang hoạt động':
+                        backgroundColor =
+                            const Color.fromARGB(255, 96, 220, 100);
+                        break;
+                      case 'Gọi thêm':
+                        backgroundColor =
+                            _backgroundColor; // đổi màu đỏ vàng liên tục
+                        break;
+                      case 'Trống':
+                      default:
+                        backgroundColor =
+                            const Color.fromARGB(255, 207, 205, 205);
+                        break;
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedTable = table; // Cập nhật bàn được chọn
+                          _selectedTableId = table.id;
+                          isActive = table.status == 'Đang hoạt động';
+                          isPendingApproval = table.status == 'Chờ duyệt';
+                          isCallMore = table.status == 'Gọi thêm';
+                        });
+                        _openOrderDialog(table);
+                      },
+                      child: Material(
+                        borderRadius: BorderRadius.circular(8),
+                        elevation: isSelected ? 6 : 3,
+                        color: isSelected
+                            ? backgroundColor.withOpacity(0.7)
+                            : backgroundColor,
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () {
+                              setState(() {
+                                _selectedTableId = table.id;
+                                _selectedTable = table;
+                                isActive = table.status == 'Đang hoạt động';
+                                isPendingApproval = table.status == 'Chờ duyệt';
+                                isCallMore = table.status == 'Gọi thêm';
+                              });
+                              _openOrderDialog(table);
+                            },
+                            splashColor: Colors.grey.withOpacity(0.5),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Bàn ${table.name}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: isSelected
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTableList(String title, List<Tables> tables) {

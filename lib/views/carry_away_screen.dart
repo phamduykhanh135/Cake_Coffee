@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Carry_Away extends StatefulWidget {
   final String nvName;
@@ -45,6 +46,21 @@ class _Carry_AwayState extends State<Carry_Away> {
     super.initState();
     _loadOrderDetails();
     _loadCategories();
+    loadLocalStatus();
+  }
+
+  void saveLocalStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isActive', isActive);
+    await prefs.setBool('isPendingApproval', isPendingApproval);
+  }
+
+  void loadLocalStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isActive = prefs.getBool('isActive') ?? false;
+      isPendingApproval = prefs.getBool('isPendingApproval') ?? false;
+    });
   }
 
   void _getCustomerPoint(String phone) async {
@@ -302,6 +318,7 @@ class _Carry_AwayState extends State<Carry_Away> {
     setState(() {
       _orderDetails.add(orderDetail);
       isPendingApproval = true;
+      saveLocalStatus();
     });
 
     // Lấy reference đến document của đơn hàng hiện tại trong collection 'orders'
@@ -1530,6 +1547,7 @@ class _Carry_AwayState extends State<Carry_Away> {
                   setState(() {
                     isPendingApproval = false;
                     isActive = true;
+                    saveLocalStatus(); // Lưu trạng thái cục bộ sau khi cập nhật
                   });
                 },
               ),
@@ -2005,6 +2023,7 @@ class _Carry_AwayState extends State<Carry_Away> {
               //     .update({'status': 'empty'});
               setState(() {
                 isActive = false;
+                saveLocalStatus(); // Lưu trạ
               });
               Navigator.of(context).pop();
             },
@@ -2210,6 +2229,7 @@ class _Carry_AwayState extends State<Carry_Away> {
     int itemCount = querySnapshot.docs.length;
     setState(() {
       isPendingApproval = itemCount > 0; // Set pending approval state
+      saveLocalStatus();
     });
   }
 
@@ -2230,6 +2250,7 @@ class _Carry_AwayState extends State<Carry_Away> {
     int itemCount = querySnapshot.docs.length;
     setState(() {
       isPendingApproval = itemCount > 0; // Set pending approval state
+      saveLocalStatus();
     });
   }
 

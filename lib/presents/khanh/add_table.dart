@@ -67,6 +67,7 @@ class _AddTablePage extends State<AddTablePage> {
     if (_isLoading || !mounted) return;
     String name = _nameController.text.trim();
     String status = 'Trống';
+    String status2 = '';
 
     setState(() {
       _isLoading = true;

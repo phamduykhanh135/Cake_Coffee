@@ -5,6 +5,7 @@ class Tables {
   String id_area;
   String name;
   String status;
+
   Tables({
     required this.id,
     required this.id_area,

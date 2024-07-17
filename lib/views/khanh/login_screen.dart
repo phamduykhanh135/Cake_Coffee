@@ -17,6 +17,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
+  bool _showPassword = false;
+  void _toggleShowPassword() {
+    setState(() {
+      _showPassword = !_showPassword;
+    });
+  }
 
   void _login() async {
     setState(() {
@@ -164,8 +170,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(color: Colors.brown.shade800),
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(_showPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        onPressed: _toggleShowPassword,
+                      ),
                     ),
-                    obscureText: true,
+                    obscureText: !_showPassword,
                     enabled: !_isLoading,
                   ),
                 ),
